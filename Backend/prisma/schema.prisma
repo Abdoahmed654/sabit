@@ -1,0 +1,268 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String           @id @default(uuid())
+  email         String           @unique
+  passwordHash  String
+  displayName   String
+  avatarUrl     String?
+  xp            Int              @default(0)
+  coins         Int              @default(0)
+  level         Int              @default(1)
+  refreshToken  String?
+  friends       Friend[]         @relation("UserFriends")
+  inventory     UserItem[]
+  challenges    ChallengeProgress[]
+  badges        UserBadge[]
+  dailyActions  DailyAction[]
+  messages      Message[]
+  purchases     Purchase[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([email])
+  @@index([xp])
+  @@index([coins])
+}
+
+model Friend {
+  id             String   @id @default(uuid())
+  user           User     @relation("UserFriends", fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  friendId       String
+  status         FriendStatus @default(PENDING)
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, friendId])
+  @@index([userId])
+  @@index([friendId])
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+model Item {
+  id             String   @id @default(uuid())
+  name           String
+  type           ItemType
+  imageUrl       String?
+  priceCoins     Int
+  priceXp        Int       @default(0)
+  rarity         ItemRarity @default(COMMON)
+  createdAt      DateTime @default(now())
+  userItems      UserItem[]
+  purchases      Purchase[]
+
+  @@index([type])
+  @@index([rarity])
+}
+
+enum ItemType {
+  HAIR
+  CLOTH
+  ACCESSORY
+  SHOES
+}
+
+enum ItemRarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+model UserItem {
+  id         String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  item       Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId     String
+  equipped   Boolean  @default(false)
+  unlockedAt DateTime @default(now())
+
+  @@unique([userId, itemId])
+  @@index([userId])
+  @@index([itemId])
+}
+
+model Challenge {
+  id            String   @id @default(uuid())
+  title         String
+  description   String
+  startAt       DateTime
+  endAt         DateTime
+  rewardXp      Int
+  rewardCoins   Int
+  isGlobal      Boolean   @default(true)
+  tasks         ChallengeTask[]
+  progresses    ChallengeProgress[]
+  createdAt     DateTime @default(now())
+
+  @@index([startAt])
+  @@index([endAt])
+  @@index([isGlobal])
+}
+
+model ChallengeTask {
+  id            String   @id @default(uuid())
+  challenge     Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  challengeId   String
+  title         String
+  type          TaskType
+  goalCount     Int?
+  points        Int       @default(10)
+  params        Json?
+
+  @@index([challengeId])
+}
+
+enum TaskType {
+  DAILY
+  COUNT
+  STREAK
+}
+
+model ChallengeProgress {
+  id            String   @id @default(uuid())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  challenge     Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  challengeId   String
+  status        ProgressStatus @default(IN_PROGRESS)
+  taskProgress  Json?
+  pointsEarned  Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([userId, challengeId])
+  @@index([userId])
+  @@index([challengeId])
+  @@index([status])
+}
+
+enum ProgressStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model Badge {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  iconUrl     String?
+  criteria    Json?
+  users       UserBadge[]
+  createdAt   DateTime @default(now())
+}
+
+model UserBadge {
+  id         String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  badge      Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  badgeId    String
+  awardedAt  DateTime @default(now())
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+}
+
+model DailyAction {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  actionType  DailyActionType
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([actionType])
+  @@index([createdAt])
+}
+
+enum DailyActionType {
+  PRAYER
+  TASBEEH
+  CHARITY
+  AZKAR
+}
+
+model ChatGroup {
+  id          String   @id @default(uuid())
+  name        String
+  type        GroupType
+  createdAt   DateTime @default(now())
+  messages    Message[]
+
+  @@index([type])
+}
+
+enum GroupType {
+  PUBLIC
+  PRIVATE
+  CHALLENGE
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  group       ChatGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId     String
+  sender      User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId    String
+  content     String
+  createdAt   DateTime @default(now())
+
+  @@index([groupId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+model LeaderboardSnapshot {
+  id           String   @id @default(uuid())
+  type         LeaderboardType
+  snapshotAt   DateTime @default(now())
+  payload      Json
+
+  @@index([type])
+  @@index([snapshotAt])
+}
+
+enum LeaderboardType {
+  XP
+  COINS
+  CHALLENGE
+}
+
+model Purchase {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  item         Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId       String
+  priceCoins   Int
+  createdAt    DateTime @default(now())
+  status       PurchaseStatus @default(SUCCESS)
+
+  @@index([userId])
+  @@index([itemId])
+  @@index([status])
+}
+
+enum PurchaseStatus {
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
