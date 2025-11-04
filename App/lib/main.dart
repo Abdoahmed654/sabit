@@ -14,7 +14,7 @@ class sabitApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       // routerConfig: AppRouter().router,
-      home: LoginScreen(),
+      home: LoginPage(),
     );
   }
 }
