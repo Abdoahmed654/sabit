@@ -1,20 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:sapit/features/Auth/presentation/pages/login_screen.dart';
-import 'router/app-router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sapit/core/di/injection_container.dart' as di;
+import 'package:sapit/features/auth/presentation/state/auth_bloc.dart';
+import 'package:sapit/core/theme/app_colors.dart';
+import 'package:sapit/router/app_router.dart';
 
-void main() {
-  runApp(const sabitApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await di.init();
+
+  runApp(const SabitApp());
 }
 
-class sabitApp extends StatelessWidget {
-  const sabitApp({super.key});
+class SabitApp extends StatelessWidget {
+  const SabitApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      // routerConfig: AppRouter().router,
-      home: LoginPage(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => di.sl<AuthBloc>()),
+      ],
+      child: MaterialApp.router(
+        title: 'Sabit App',
+        theme: AppTheme.darkTheme,
+        debugShowCheckedModeBanner: false,
+        routerConfig: AppRouter.router,
+      ),
     );
   }
 }

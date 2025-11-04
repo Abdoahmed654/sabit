@@ -6,7 +6,10 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { Request } from 'express';
 
 @Injectable()
-export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
+export class JwtRefreshStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
