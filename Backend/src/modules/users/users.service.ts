@@ -132,13 +132,32 @@ export class UsersService {
   }
 
   async sendFriendRequest(userId: string, dto: AddFriendDto) {
-    if (userId === dto.friendId) {
+    let friendId = dto.friendId;
+
+    // If email is provided, find user by email
+    if (dto.email) {
+      const friend = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
+
+      if (!friend) {
+        throw new NotFoundException('User not found with this email');
+      }
+
+      friendId = friend.id;
+    }
+
+    if (!friendId) {
+      throw new BadRequestException('Either friendId or email must be provided');
+    }
+
+    if (userId === friendId) {
       throw new BadRequestException('Cannot send friend request to yourself');
     }
 
     // Check if friend exists
     const friend = await this.prisma.user.findUnique({
-      where: { id: dto.friendId },
+      where: { id: friendId },
     });
 
     if (!friend) {
@@ -149,8 +168,8 @@ export class UsersService {
     const existingFriendship = await this.prisma.friend.findFirst({
       where: {
         OR: [
-          { userId, friendId: dto.friendId },
-          { userId: dto.friendId, friendId: userId },
+          { userId, friendId },
+          { userId: friendId, friendId: userId },
         ],
       },
     });
@@ -162,8 +181,18 @@ export class UsersService {
     const friendship = await this.prisma.friend.create({
       data: {
         userId,
-        friendId: dto.friendId,
+        friendId,
         status: 'PENDING',
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            displayName: true,
+            avatarUrl: true,
+            email: true,
+          },
+        },
       },
     });
 
@@ -186,9 +215,86 @@ export class UsersService {
     const updatedFriendship = await this.prisma.friend.update({
       where: { id: friendshipId },
       data: { status: 'ACCEPTED' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            displayName: true,
+            avatarUrl: true,
+            email: true,
+          },
+        },
+      },
     });
 
     return updatedFriendship;
+  }
+
+  async blockFriendRequest(userId: string, friendshipId: string) {
+    const friendship = await this.prisma.friend.findUnique({
+      where: { id: friendshipId },
+    });
+
+    if (!friendship) {
+      throw new NotFoundException('Friend request not found');
+    }
+
+    if (friendship.friendId !== userId) {
+      throw new BadRequestException('You can only block requests sent to you');
+    }
+
+    const updatedFriendship = await this.prisma.friend.update({
+      where: { id: friendshipId },
+      data: { status: 'BLOCKED' },
+    });
+
+    return updatedFriendship;
+  }
+
+  async getPendingRequests(userId: string) {
+    const pendingRequests = await this.prisma.friend.findMany({
+      where: {
+        friendId: userId,
+        status: 'PENDING',
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            displayName: true,
+            avatarUrl: true,
+            email: true,
+            level: true,
+            xp: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return pendingRequests;
+  }
+
+  async searchUserByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        displayName: true,
+        avatarUrl: true,
+        email: true,
+        level: true,
+        xp: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found with this email');
+    }
+
+    return user;
   }
 
   async getFriends(userId: string) {

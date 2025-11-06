@@ -6,12 +6,14 @@ import {
   Body,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateProfileDto, AddFriendDto } from './dto';
-import { CurrentUser } from '../../common';
+import { CurrentUser, JwtAuthGuard } from '../../common';
 
+@UseGuards(JwtAuthGuard)
 @ApiTags('users')
 @ApiBearerAuth()
 @Controller('users')
@@ -63,10 +65,31 @@ export class UsersController {
     return this.usersService.acceptFriendRequest(user.id, friendshipId);
   }
 
+  @Post('friends/:friendshipId/block')
+  @ApiOperation({ summary: 'Block friend request' })
+  async blockFriendRequest(
+    @CurrentUser() user: any,
+    @Param('friendshipId') friendshipId: string,
+  ) {
+    return this.usersService.blockFriendRequest(user.id, friendshipId);
+  }
+
+  @Get('friends/requests/pending')
+  @ApiOperation({ summary: 'Get pending friend requests' })
+  async getPendingRequests(@CurrentUser() user: any) {
+    return this.usersService.getPendingRequests(user.id);
+  }
+
   @Get('friends')
   @ApiOperation({ summary: 'Get friends list' })
   async getFriends(@CurrentUser() user: any) {
     return this.usersService.getFriends(user.id);
+  }
+
+  @Get('search')
+  @ApiOperation({ summary: 'Search user by email' })
+  async searchUserByEmail(@Query('email') email: string) {
+    return this.usersService.searchUserByEmail(email);
   }
 }
 
