@@ -21,10 +21,10 @@ export class DailyController {
   @ApiOperation({ summary: 'Get user actions' })
   @ApiQuery({ name: 'days', required: false, type: Number })
   async getUserActions(
-    @CurrentUser() user: any,
+    @Query('userid') userid: any,
     @Query('days') days?: number,
   ) {
-    return this.dailyService.getUserActions(user.id, days ? +days : 7);
+    return this.dailyService.getUserActions(userid, days ? +days : 7);
   }
 
   @ApiBearerAuth()

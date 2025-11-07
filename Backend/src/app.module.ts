@@ -36,11 +36,11 @@ import { JwtAuthGuard } from './common/guards';
     DailyModule,
     AdminModule,
   ],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-  ],
+  // providers: [
+  //   {
+  //     provide: APP_GUARD,
+  //     useClass: JwtAuthGuard,
+  //   },
+  // ],
 })
 export class AppModule {}

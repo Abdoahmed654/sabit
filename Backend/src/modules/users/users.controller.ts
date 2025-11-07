@@ -83,12 +83,13 @@ export class UsersController {
   @Get('friends')
   @ApiOperation({ summary: 'Get friends list' })
   async getFriends(@CurrentUser() user: any) {
-    return this.usersService.getFriends(user.id);
+    return this.usersService.getFriends(user.id) ?? [];
   }
 
   @Get('search')
   @ApiOperation({ summary: 'Search user by email' })
   async searchUserByEmail(@Query('email') email: string) {
+    console.log(email)
     return this.usersService.searchUserByEmail(email);
   }
 }

@@ -23,10 +23,10 @@ export class JwtRefreshStrategy extends PassportStrategy(
   }
 
   async validate(req: Request, payload: { sub: string; email: string }) {
-    const refreshToken = req.get('Authorization')?.replace('Bearer', '').trim();
+    const refreshToken = req.body.refreshToken;
 
     if (!refreshToken) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("Access Denied");
     }
 
     const user = await this.prisma.user.findUnique({
@@ -34,7 +34,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
     });
 
     if (!user || !user.refreshToken) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("Access Denied");
     }
 
     return { ...user, refreshToken };
