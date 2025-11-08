@@ -40,6 +40,15 @@ export class ChallengesService {
       },
     });
 
+    // Create a chat group for this challenge
+    await this.prisma.chatGroup.create({
+      data: {
+        name: `${challenge.title} - Challenge Group`,
+        type: 'CHALLENGE',
+        challengeId: challenge.id,
+      },
+    });
+
     return challenge;
   }
 
@@ -124,6 +133,10 @@ export class ChallengesService {
         },
       },
     });
+
+    // Note: User is automatically part of the challenge group
+    // The group was created when the challenge was created
+    // No need to explicitly add users to groups - they can access it when they join the challenge
 
     return progress;
   }

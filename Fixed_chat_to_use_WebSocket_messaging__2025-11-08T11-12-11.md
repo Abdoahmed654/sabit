@@ -1,0 +1,34 @@
+[ ] NAME:Current Task List DESCRIPTION:Root task for conversation __NEW_AGENT__
+-[x] NAME:Add WebSocket events to chat_event.dart DESCRIPTION:Add JoinGroupEvent, LeaveGroupEvent, and NewMessageReceivedEvent to handle WebSocket operations
+-[x] NAME:Update ChatBloc to use WebSocketService DESCRIPTION:Modify ChatBloc to use WebSocketService for sending messages and handling incoming messages instead of HTTP
+-[x] NAME:Update ChatMessagesScreen to use WebSocket DESCRIPTION:Add WebSocket connection, join/leave group on init/dispose, and listen for new messages
+-[x] NAME:Update chat repository and datasource DESCRIPTION:Remove HTTP sendMessage method and use WebSocket instead
+-[x] NAME:Add ConnectWebSocketEvent to chat_event.dart DESCRIPTION:Add event to connect WebSocket when user logs in
+-[x] NAME:Update ChatBloc to handle ConnectWebSocketEvent DESCRIPTION:Add handler to connect WebSocket service with userId
+-[x] NAME:Add LoadGroupsEvent to chat_event.dart DESCRIPTION:Add event to load all chat groups
+-[x] NAME:Add GroupsLoaded state to chat_state.dart DESCRIPTION:Add state to hold loaded groups
+-[x] NAME:Update ChatBloc to handle LoadGroupsEvent DESCRIPTION:Add handler to load groups from repository
+-[x] NAME:Investigate private chat between friends DESCRIPTION:Check how private chats are created between friends and ensure they work correctly
+-[x] NAME:Implement caching for chat groups DESCRIPTION:Add caching mechanism to store and retrieve chat groups locally
+-[x] NAME:Implement caching for messages DESCRIPTION:Add caching mechanism to store and retrieve messages locally
+-[x] NAME:Analyze current Good Deeds implementation DESCRIPTION:Review existing daily actions, prayer, azkar, and fasting features to understand current structure
+-[x] NAME:Design new database schema DESCRIPTION:Create schema for Azkar groups, individual Azkars, deed completion tracking, and time-based restrictions
+-[x] NAME:Implement backend API endpoints DESCRIPTION:Create endpoints for Azkar groups, Azkars, fasting submission, prayer times, and admin features
+-[ ] NAME:Create Flutter UI components DESCRIPTION:Design modern UI for Good Deeds screen, Azkar groups, Azkar counter, and prayer widget for homepage
+-[ ] NAME:Implement business logic DESCRIPTION:Add time-based restrictions, completion tracking, reward distribution, and prevention of duplicates
+-[ ] NAME:Test the complete feature DESCRIPTION:Verify all flows work correctly including rewards, restrictions, and admin features
+-[/] NAME:Prayer completion on countdown click DESCRIPTION:Add ability to mark prayer as completed when clicking countdown widget (after 10 min of prayer start)
+-[ ] NAME:Multiple daily completions for Azkar DESCRIPTION:Allow prayer Azkar to be completed 5 times/day, others once/day
+-[ ] NAME:Implement caching system DESCRIPTION:Add caching for API responses to improve performance
+-[/] NAME:Fix fasting Azkar page navigation DESCRIPTION:Fix issue where going back from fasting page shows nothing
+-[ ] NAME:Fix empty fasting page DESCRIPTION:Investigate and fix why fasting page is empty
+-[ ] NAME:Add settings for username and theme DESCRIPTION:Create settings page to change username and theme visibility
+-[ ] NAME:Challenge tasks creation and notification DESCRIPTION:Ensure challenge tasks are created and users are notified
+-[ ] NAME:Auto-complete challenges DESCRIPTION:Make challenges automatically complete based on good deeds or special tasks
+-[x] NAME:Fix fasting page navigation issue DESCRIPTION:When navigating back from fasting screen, reload azkar groups to show content
+-[/] NAME:Add prayer completion on countdown click DESCRIPTION:Allow users to mark prayer as completed by clicking countdown widget (only after 10 min of prayer time)
+-[ ] NAME:Allow multiple Azkar completions per day DESCRIPTION:Make prayer azkar completable 5 times/day, others once per day
+-[ ] NAME:Implement caching system DESCRIPTION:Add caching for prayer times, quotes, and azkar data
+-[ ] NAME:Add settings for username and theme DESCRIPTION:Create settings page to change username and theme visibility
+-[ ] NAME:Ensure challenge tasks are created and notified DESCRIPTION:Verify challenge task creation and notification system
+-[ ] NAME:Auto-complete challenges via good deeds DESCRIPTION:Make challenges automatically complete when good deeds or special tasks are done

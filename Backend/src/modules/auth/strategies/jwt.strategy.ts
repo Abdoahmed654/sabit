@@ -6,7 +6,6 @@ import { PrismaService } from '../../../prisma/prisma.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  private readonly logger = new Logger(JwtStrategy.name);
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
@@ -14,11 +13,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: configService.get<string>('JWT_SECRET'),
+      ignoreExpiration: false,
+      passReqToCallback: false, 
     });
   }
 
   async validate(payload: { sub: string; email: string }) {
-    this.logger.log(`JWT Payload: ${JSON.stringify(payload)}`);
+    
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
       select: {

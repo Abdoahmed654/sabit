@@ -1,18 +1,25 @@
+import 'package:dartz/dartz.dart';
+import 'package:sapit/core/error/failures.dart';
 import 'package:sapit/core/usecases/Usecase.dart';
 import 'package:sapit/features/auth/domain/entities/User.dart';
 import 'package:sapit/features/auth/domain/repositories/auth_repo.dart';
 
-class LoginUsecase extends Usecase<User, LoginParams> {
+class LoginUsecase implements UseCase<User, LoginParams> {
   final AuthRepo repo;
 
   LoginUsecase(this.repo);
 
   @override
-  Future<User> call(LoginParams params) async {
-    return await repo.login(
-      email: params.email,
-      password: params.password,
-    );
+  Future<Either<Failure, User>> call(LoginParams params) async {
+    try {
+      final user = await repo.login(
+        email: params.email,
+        password: params.password,
+      );
+      return Right(user);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
   }
 }
 

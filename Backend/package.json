@@ -43,6 +43,7 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
     "aws-sdk": "^2.1499.0",
+    "axios": "^1.13.2",
     "bcrypt": "^5.1.1",
     "bullmq": "^5.63.0",
     "class-transformer": "^0.5.1",

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sapit/core/widgets/app_text_field.dart';
-import 'package:sapit/core/widgets/primary_button.dart';
 import 'package:sapit/features/auth/presentation/state/auth_bloc.dart';
 import 'package:sapit/features/auth/presentation/state/auth_event.dart';
-import 'package:sapit/features/auth/presentation/state/auth_state.dart';
+import 'package:sapit/features/auth/presentation/widgets/auth_footer.dart';
+import 'package:sapit/features/auth/presentation/widgets/auth_form_container.dart';
+import 'package:sapit/features/auth/presentation/widgets/auth_header.dart';
+import 'package:sapit/features/auth/presentation/widgets/auth_layout.dart';
+import 'package:sapit/features/auth/presentation/widgets/auth_listener.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -26,106 +29,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  void _onRegister(BuildContext context) {
+    if ([nameCtrl, emailCtrl, passwordCtrl].any((c) => c.text.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields'), backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
+    context.read<AuthBloc>().add(
+          RegisterEvent(emailCtrl.text, passwordCtrl.text, nameCtrl.text),
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF0E0E0E), Color(0xFF1A1A1A)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-        child: BlocConsumer<AuthBloc, AuthState>(
-          listener: (context, state) {
-            if (state is AuthFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            } else if (state is AuthSuccess) {
-              // Navigate to home on success
-              Navigator.pushReplacementNamed(context, '/home');
-            }
-          },
-          builder: (context, state) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return AuthLayout(
+      child: AuthListener(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 24),
+            const AuthHeader(
+              title: "Create Account 🌟",
+              subTitle: "Start your journey to good deeds",
+            ),
+            AuthFormContainer(
+              buttonText: "Sign Up",
+              onSubmit: () => _onRegister(context),
               children: [
-                const Spacer(),
-                const Text(
-                  "Create Account 🌟",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Start your journey to good deeds",
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 32),
                 AppTextField(controller: nameCtrl, hint: "Display Name"),
                 const SizedBox(height: 16),
                 AppTextField(controller: emailCtrl, hint: "Email"),
                 const SizedBox(height: 16),
-                AppTextField(
-                  controller: passwordCtrl,
-                  hint: "Password",
-                  obscure: true,
-                ),
-                const SizedBox(height: 24),
-                state is AuthLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(color: Colors.amber),
-                      )
-                    : PrimaryButton(
-                        text: "Sign Up",
-                        onPressed: () {
-                          if (nameCtrl.text.isEmpty ||
-                              emailCtrl.text.isEmpty ||
-                              passwordCtrl.text.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Please fill all fields'),
-                                backgroundColor: Colors.orange,
-                              ),
-                            );
-                            return;
-                          }
-
-                          context.read<AuthBloc>().add(
-                                RegisterEvent(
-                                  emailCtrl.text,
-                                  passwordCtrl.text,
-                                  nameCtrl.text,
-                                ),
-                              );
-                        },
-                      ),
-                const SizedBox(height: 12),
-                Center(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      "Already have an account? Login",
-                      style: TextStyle(color: Colors.amber),
-                    ),
-                  ),
-                ),
-                const Spacer(),
+                AppTextField(controller: passwordCtrl, hint: "Password", obscure: true),
               ],
-            );
-          },
+            ),
+            const SizedBox(height: 12),
+            const AuthFooter(to: "login", buttonText: "Already have an account? Login"),
+          ],
         ),
       ),
     );
   }
 }
-

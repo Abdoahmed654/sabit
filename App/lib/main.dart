@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sapit/core/di/injection_container.dart' as di;
 import 'package:sapit/features/auth/presentation/state/auth_bloc.dart';
-import 'package:sapit/core/theme/app_colors.dart';
+import 'package:sapit/features/challenges/presentation/bloc/challenges_bloc.dart';
+import 'package:sapit/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:sapit/features/daily/presentation/bloc/daily_bloc.dart';
+import 'package:sapit/features/daily/presentation/bloc/good_deeds_bloc.dart';
+import 'package:sapit/features/friends/presentation/bloc/friends_bloc.dart';
+import 'package:sapit/features/leaderboard/presentation/bloc/leaderboard_bloc.dart';
+import 'package:sapit/core/theme/app_theme.dart';
 import 'package:sapit/router/app_router.dart';
 
 void main() async {
@@ -10,7 +16,7 @@ void main() async {
   await di.init();
 
   runApp(const SabitApp());
-}
+} 
 
 class SabitApp extends StatelessWidget {
   const SabitApp({super.key});
@@ -20,10 +26,18 @@ class SabitApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => di.sl<AuthBloc>()),
+        BlocProvider(create: (_) => di.sl<ChatBloc>()),
+        BlocProvider(create: (_) => di.sl<FriendsBloc>()),
+        BlocProvider(create: (_) => di.sl<DailyBloc>()),
+        BlocProvider(create: (_) => di.sl<GoodDeedsBloc>()),
+        BlocProvider(create: (_) => di.sl<ChallengesBloc>()),
+        BlocProvider(create: (_) => di.sl<LeaderboardBloc>()),
       ],
       child: MaterialApp.router(
         title: 'Sabit App',
-        theme: AppTheme.darkTheme,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system ,
         debugShowCheckedModeBanner: false,
         routerConfig: AppRouter.router,
       ),

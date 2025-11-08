@@ -1,39 +1,22 @@
 import 'package:flutter/material.dart';
 
-class AppTheme {
-  static ThemeData darkTheme = ThemeData(
-    brightness: Brightness.dark,
-    scaffoldBackgroundColor: const Color(0xFF0E0E0E),
-    primaryColor: const Color(0xFFFFC107), // gold
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      centerTitle: true,
-      titleTextStyle: TextStyle(
-        color: Colors.white,
-        fontWeight: FontWeight.bold,
-        fontSize: 22,
-      ),
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: const Color(0xFF1C1C1C),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide.none,
-      ),
-      hintStyle: const TextStyle(color: Colors.grey),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFFFC107),
-        foregroundColor: Colors.black,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-      ),
-    ),
-  );
+class AppColors {
+  // Primary colors
+  static const Color primary = Color(0xFF4CAF50);
+  static const Color secondary = Color(0xFF388E3C);
+  
+  // Background colors
+  static const Color background = Color(0xFFF9FAF8);
+  static const Color surface = Color(0xFFFFFFFF);
+  
+  // Text colors
+  static const Color textPrimary = Colors.black;
+  static const Color textSecondary = Colors.grey;
+  
+  // Status colors
+  static const Color success = Colors.green;
+  static const Color error = Colors.red;
+  static const Color warning = Colors.orange;
+  static const Color info = Colors.blue;
 }
+

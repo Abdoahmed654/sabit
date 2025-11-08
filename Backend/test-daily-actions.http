@@ -1,0 +1,117 @@
+### Sabit Daily Actions API Test
+### Use this file with REST Client extension in VSCode
+
+@baseUrl = http://localhost:3000
+@accessToken = YOUR_ACCESS_TOKEN_HERE
+
+### 1. Register a new user
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "muslim@example.com",
+  "password": "password123",
+  "displayName": "Abdullah"
+}
+
+### 2. Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "muslim@example.com",
+  "password": "password123"
+}
+
+### Extract token (automatic with REST Client)
+@token = {{login.response.body.accessToken}}
+
+### 3. Record Fajr Prayer
+POST {{baseUrl}}/daily/actions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "actionType": "PRAYER",
+  "metadata": {
+    "prayerName": "Fajr",
+    "timestamp": "2025-11-07T05:30:00Z"
+  }
+}
+
+### 4. Record Tasbeeh (100 times)
+POST {{baseUrl}}/daily/actions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "actionType": "TASBEEH",
+  "metadata": {
+    "count": 100,
+    "type": "SubhanAllah"
+  }
+}
+
+### 5. Record Charity
+POST {{baseUrl}}/daily/actions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "actionType": "CHARITY",
+  "metadata": {
+    "amount": 10,
+    "currency": "USD",
+    "cause": "Orphan support"
+  }
+}
+
+### 6. Record Morning Azkar
+POST {{baseUrl}}/daily/actions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "actionType": "AZKAR",
+  "metadata": {
+    "type": "morning",
+    "completed": true
+  }
+}
+
+### 7. Get Today's Actions
+GET {{baseUrl}}/daily/actions/today
+Authorization: Bearer {{token}}
+
+### 8. Get Last 7 Days Actions
+GET {{baseUrl}}/daily/actions?days=7
+Authorization: Bearer {{token}}
+
+### 9. Get Last 30 Days Actions
+GET {{baseUrl}}/daily/actions?days=30
+Authorization: Bearer {{token}}
+
+### 10. Check Prayer Streak
+GET {{baseUrl}}/daily/streak?actionType=PRAYER
+Authorization: Bearer {{token}}
+
+### 11. Check Tasbeeh Streak
+GET {{baseUrl}}/daily/streak?actionType=TASBEEH
+Authorization: Bearer {{token}}
+
+### 12. Check Charity Streak
+GET {{baseUrl}}/daily/streak?actionType=CHARITY
+Authorization: Bearer {{token}}
+
+### 13. Check Azkar Streak
+GET {{baseUrl}}/daily/streak?actionType=AZKAR
+Authorization: Bearer {{token}}
+
+### 14. Get User Profile (check XP and coins earned)
+GET {{baseUrl}}/users/profile
+Authorization: Bearer {{token}}
+
+### 15. Get Quote of the Day (Public - no auth needed)
+GET {{baseUrl}}/daily/quote
+

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sapit/core/widgets/app_text_field.dart';
-import 'package:sapit/core/widgets/primary_button.dart';
 import 'package:sapit/features/auth/presentation/state/auth_bloc.dart';
 import 'package:sapit/features/auth/presentation/state/auth_event.dart';
-import 'package:sapit/features/auth/presentation/state/auth_state.dart';
-import 'package:sapit/router/app_router.dart';
+import 'package:sapit/features/auth/presentation/widgets/auth_footer.dart';
+import 'package:sapit/features/auth/presentation/widgets/auth_form_container.dart';
+import 'package:sapit/features/auth/presentation/widgets/auth_header.dart';
+import 'package:sapit/features/auth/presentation/widgets/auth_layout.dart';
+import 'package:sapit/features/auth/presentation/widgets/auth_listener.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,73 +21,40 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordCtrl = TextEditingController();
 
   @override
+  void dispose() {
+    emailCtrl.dispose();
+    passwordCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onLogin(BuildContext context) {
+    context.read<AuthBloc>().add(LoginEvent(emailCtrl.text, passwordCtrl.text));
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF0E0E0E), Color(0xFF1A1A1A)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-        child: BlocConsumer<AuthBloc, AuthState>(
-          listener: (context, state) {
-            if (state is AuthFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            } else if (state is AuthSuccess) {
-              // Navigate to home on success
-              AppRouter.push("home");
-            }
-          },
-          builder: (context, state) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return AuthLayout(
+      child: AuthListener(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 24),
+            const AuthHeader(
+              title: "Welcome Back 👋",
+              subTitle: "Login to continue your journey",
+            ),
+            AuthFormContainer(
+              buttonText: "Login",
+              onSubmit: () => _onLogin(context),
               children: [
-                const Spacer(),
-                const Text("Welcome Back 👋",
-                    style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold
-                )),
-                const SizedBox(height: 8),
-                const Text("Login to continue your journey",
-                    style: TextStyle(color: Colors.grey)),
-                const SizedBox(height: 32),
                 AppTextField(controller: emailCtrl, hint: "Email"),
                 const SizedBox(height: 16),
                 AppTextField(controller: passwordCtrl, hint: "Password", obscure: true),
-                const SizedBox(height: 24),
-                state is AuthLoading
-                    ? const Center(child: CircularProgressIndicator(color: Colors.amber))
-                    : PrimaryButton(
-                        text: "Login",
-                        onPressed: () {
-                          context.read<AuthBloc>().add(
-                                LoginEvent(emailCtrl.text, passwordCtrl.text),
-                              );
-                        }),
-                const SizedBox(height: 12),
-                Center(
-                  child: TextButton(
-                    onPressed: () => AppRouter.push("signup"),
-                    child: const Text(
-                      "Don't have an account? Sign up",
-                      style: TextStyle(color: Colors.amber),
-                    ),
-                  ),
-                ),
-                const Spacer(),
               ],
-            );
-          },
+            ),
+            const SizedBox(height: 12),
+            const AuthFooter(to: "signup", buttonText: "Don't have an account? Sign up"),
+          ],
         ),
       ),
     );

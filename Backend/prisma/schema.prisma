@@ -8,24 +8,29 @@ datasource db {
 }
 
 model User {
-  id            String           @id @default(uuid())
-  email         String           @unique
-  passwordHash  String
-  displayName   String
-  avatarUrl     String?
-  xp            Int              @default(0)
-  coins         Int              @default(0)
-  level         Int              @default(1)
-  refreshToken  String?
-  friends       Friend[]         @relation("UserFriends")
-  inventory     UserItem[]
-  challenges    ChallengeProgress[]
-  badges        UserBadge[]
-  dailyActions  DailyAction[]
-  messages      Message[]
-  purchases     Purchase[]
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  id              String           @id @default(uuid())
+  email           String           @unique
+  passwordHash    String
+  displayName     String
+  avatarUrl       String?
+  xp              Int              @default(0)
+  coins           Int              @default(0)
+  level           Int              @default(1)
+  isAdmin         Boolean          @default(false) // Admin flag for adding Azkars
+  refreshToken    String?
+  friends         Friend[]         @relation("UserFriends")
+  inventory       UserItem[]
+  challenges      ChallengeProgress[]
+  badges          UserBadge[]
+  dailyActions    DailyAction[]
+  messages        Message[]
+  purchases       Purchase[]
+  prayerCompletions PrayerCompletion[]
+  azkarCompletions AzkarCompletion[]
+  fastingCompletions FastingCompletion[]
+  chatGroups      ChatGroupMember[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   @@index([email])
   @@index([xp])
@@ -127,9 +132,11 @@ model ChallengeTask {
 }
 
 enum TaskType {
-  DAILY
-  COUNT
-  STREAK
+  DAILY      // One-time daily task
+  COUNT      // Counter-based task (e.g., read Quran 10 pages)
+  STREAK     // Consecutive days task
+  PRAYER     // Prayer-specific task (5 times daily)
+  AZKAR      // Azkar counter task
 }
 
 model ChallengeProgress {
@@ -185,11 +192,15 @@ model DailyAction {
   userId      String
   actionType  DailyActionType
   metadata    Json?
+  taskId      String?  // Link to ChallengeTask if this action is for a challenge task
+  count       Int      @default(1) // For counter-based actions like Azkar
   createdAt   DateTime @default(now())
 
   @@index([userId])
   @@index([actionType])
   @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([userId, taskId, createdAt])
 }
 
 enum DailyActionType {
@@ -197,16 +208,168 @@ enum DailyActionType {
   TASBEEH
   CHARITY
   AZKAR
+  QURAN_READ
+  DUA
+  FASTING
+}
+
+// Prayer times and tracking
+model PrayerTime {
+  id          String   @id @default(uuid())
+  date        DateTime // Date for these prayer times
+  fajr        String   // Time in HH:mm format
+  dhuhr       String
+  asr         String
+  maghrib     String
+  isha        String
+  location    String?  // City/location
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime @default(now())
+
+  @@unique([date, latitude, longitude])
+  @@index([date])
+}
+
+// Track individual prayer completions
+model PrayerCompletion {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  prayerName  PrayerName
+  date        DateTime // Date of the prayer (normalized to start of day)
+  completedAt DateTime @default(now())
+  onTime      Boolean  @default(false) // Whether prayer was done on time
+
+  @@unique([userId, prayerName, date])
+  @@index([userId])
+  @@index([date])
+  @@index([userId, date])
+}
+
+enum PrayerName {
+  FAJR
+  DHUHR
+  ASR
+  MAGHRIB
+  ISHA
+}
+
+// Azkar Groups (e.g., Morning Azkar, Evening Azkar)
+model AzkarGroup {
+  id          String   @id @default(uuid())
+  name        String   // e.g., "Morning Azkar", "Evening Azkar"
+  nameAr      String   // Arabic name
+  description String?
+  icon        String?  // Icon name or emoji
+  color       String?  // Hex color code
+  category    AzkarCategory
+  order       Int      @default(0) // Display order
+  azkars      Azkar[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([order])
+}
+
+// Individual Azkar within a group
+model Azkar {
+  id          String   @id @default(uuid())
+  group       AzkarGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId     String
+  title       String
+  titleAr     String   // Arabic title
+  arabicText  String
+  translation String
+  transliteration String?
+  targetCount Int      @default(1) // How many times to recite
+  xpReward    Int      @default(10) // XP reward
+  coinsReward Int      @default(5)  // Coins reward
+  order       Int      @default(0) // Order within group
+  reference   String?  // Source reference (e.g., Hadith reference)
+  completions AzkarCompletion[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([groupId])
+  @@index([order])
+}
+
+enum AzkarCategory {
+  MORNING
+  EVENING
+  AFTER_PRAYER
+  BEFORE_SLEEP
+  GENERAL
+}
+
+// Track user's azkar completions (daily reset - can redo each day)
+model AzkarCompletion {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  azkar       Azkar    @relation(fields: [azkarId], references: [id], onDelete: Cascade)
+  azkarId     String
+  date        DateTime // Date of completion (normalized to start of day)
+  completedAt DateTime @default(now())
+  xpEarned    Int
+  coinsEarned Int
+
+  @@unique([userId, azkarId, date]) // User can complete each azkar once per day
+  @@index([userId])
+  @@index([azkarId])
+  @@index([date])
+  @@index([userId, date])
+}
+
+// Fasting tracking with time restrictions
+model FastingCompletion {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  date        DateTime // Date of the fast (normalized to start of day)
+  fastingType FastingType @default(VOLUNTARY)
+  completedAt DateTime @default(now())
+  xpEarned    Int      @default(100)
+  coinsEarned Int      @default(50)
+
+  @@unique([userId, date]) // One fasting per day
+  @@index([userId])
+  @@index([date])
+  @@index([userId, date])
+}
+
+enum FastingType {
+  VOLUNTARY
+  RAMADAN
+  SUNNAH
 }
 
 model ChatGroup {
   id          String   @id @default(uuid())
   name        String
   type        GroupType
+  challengeId String?  // Optional reference to challenge
   createdAt   DateTime @default(now())
   messages    Message[]
+  members     ChatGroupMember[]
 
   @@index([type])
+  @@index([challengeId])
+}
+
+model ChatGroupMember {
+  id        String    @id @default(uuid())
+  group     ChatGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId   String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  joinedAt  DateTime  @default(now())
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
 }
 
 enum GroupType {
@@ -265,4 +428,3 @@ enum PurchaseStatus {
   FAILED
   REFUNDED
 }
-

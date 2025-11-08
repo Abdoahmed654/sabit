@@ -5,12 +5,13 @@ import {
   Body,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ShopService } from './shop.service';
 import { CreateItemDto, BuyItemDto, EquipItemDto } from './dto';
-import { CurrentUser, Public } from '../../common';
-
+import { CurrentUser, JwtAuthGuard, Public } from '../../common';
+@UseGuards(JwtAuthGuard)
 @ApiTags('shop')
 @Controller('shop')
 export class ShopController {

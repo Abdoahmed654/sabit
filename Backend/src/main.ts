@@ -2,13 +2,20 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import { AppLogger } from './AppLogger';
+import { LoggingInterceptor } from './test';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.useGlobalInterceptors(new LoggingInterceptor(new AppLogger()));
+
+  // Serve static files from public directory
+  app.useStaticAssets(join(__dirname, '..', 'public'));
 
   // Enable CORS
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
     credentials: true,
   });
 
@@ -46,5 +53,6 @@ async function bootstrap() {
 
   console.log(`🚀 Sabit Backend is running on: http://localhost:${port}`);
   console.log(`📚 Swagger documentation: http://localhost:${port}/api`);
+  console.log(`🌐 Web App: http://localhost:${port}`);
 }
 bootstrap();

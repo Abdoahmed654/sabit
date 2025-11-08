@@ -3,17 +3,22 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateProfileDto, AddFriendDto } from './dto';
 import { calculateLevel } from '../../common/utils';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { UsersGateway } from './users.gateway';
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
     private eventEmitter: EventEmitter2,
+    @Inject(forwardRef(() => UsersGateway))
+    private usersGateway: UsersGateway,
   ) {}
 
   async getProfile(userId: string) {
@@ -191,9 +196,18 @@ export class UsersService {
             displayName: true,
             avatarUrl: true,
             email: true,
+            xp: true,
+            level: true,
           },
         },
       },
+    });
+
+    // Emit WebSocket event to the friend
+    this.usersGateway.emitFriendRequest(friendId, {
+      id: friendship.id,
+      user: friendship.user,
+      createdAt: friendship.createdAt,
     });
 
     return friendship;
@@ -222,9 +236,81 @@ export class UsersService {
             displayName: true,
             avatarUrl: true,
             email: true,
+            xp: true,
+            level: true,
           },
         },
       },
+    });
+
+    // Get the friend's details (the user who accepted the request)
+    const friend = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        displayName: true,
+        avatarUrl: true,
+        email: true,
+        xp: true,
+        level: true,
+      },
+    });
+
+    // Create a private chat group for these two friends (if it doesn't exist)
+    // Check if a private chat already exists between these two users
+    const existingPrivateChat = await this.prisma.chatGroup.findFirst({
+      where: {
+        type: 'PRIVATE',
+        AND: [
+          {
+            members: {
+              some: {
+                userId: friendship.userId,
+              },
+            },
+          },
+          {
+            members: {
+              some: {
+                userId: userId,
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    // Only create if no private chat exists
+    if (!existingPrivateChat) {
+      const user1 = await this.prisma.user.findUnique({
+        where: { id: friendship.userId },
+        select: { displayName: true },
+      });
+      const user2 = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { displayName: true },
+      });
+
+      if (user1 && user2) {
+        await this.prisma.chatGroup.create({
+          data: {
+            name: `${user1.displayName} & ${user2.displayName}`,
+            type: 'PRIVATE',
+            members: {
+              create: [
+                { userId: friendship.userId },
+                { userId: userId },
+              ],
+            },
+          },
+        });
+      }
+    }
+
+    // Emit WebSocket event to the user who sent the request
+    this.usersGateway.emitFriendRequestAccepted(friendship.userId, {
+      id: updatedFriendship.id,
+      friend,
     });
 
     return updatedFriendship;
@@ -248,7 +334,73 @@ export class UsersService {
       data: { status: 'BLOCKED' },
     });
 
+    // Emit WebSocket event to the user who sent the request
+    this.usersGateway.emitFriendRequestBlocked(friendship.userId, {
+      id: updatedFriendship.id,
+    });
+
     return updatedFriendship;
+  }
+
+  async unfriend(userId: string, friendId: string) {
+    // Find the friendship (could be in either direction)
+    const friendship = await this.prisma.friend.findFirst({
+      where: {
+        OR: [
+          { userId, friendId, status: 'ACCEPTED' },
+          { userId: friendId, friendId: userId, status: 'ACCEPTED' },
+        ],
+      },
+    });
+
+    if (!friendship) {
+      throw new NotFoundException('Friendship not found');
+    }
+
+    // Delete the friendship
+    await this.prisma.friend.delete({
+      where: { id: friendship.id },
+    });
+
+    // Emit WebSocket event to the other user
+    const otherUserId = friendship.userId === userId ? friendship.friendId : friendship.userId;
+    this.usersGateway.emitFriendRemoved(otherUserId, {
+      userId,
+      friendshipId: friendship.id,
+    });
+
+    return { message: 'Friend removed successfully' };
+  }
+
+  async blockFriend(userId: string, friendId: string) {
+    // Find the friendship (could be in either direction)
+    const friendship = await this.prisma.friend.findFirst({
+      where: {
+        OR: [
+          { userId, friendId, status: 'ACCEPTED' },
+          { userId: friendId, friendId: userId, status: 'ACCEPTED' },
+        ],
+      },
+    });
+
+    if (!friendship) {
+      throw new NotFoundException('Friendship not found');
+    }
+
+    // Update the friendship to BLOCKED
+    const updatedFriendship = await this.prisma.friend.update({
+      where: { id: friendship.id },
+      data: { status: 'BLOCKED' },
+    });
+
+    // Emit WebSocket event to the other user
+    const otherUserId = friendship.userId === userId ? friendship.friendId : friendship.userId;
+    this.usersGateway.emitFriendBlocked(otherUserId, {
+      userId,
+      friendshipId: friendship.id,
+    });
+
+    return { message: 'Friend blocked successfully' };
   }
 
   async getPendingRequests(userId: string) {
@@ -309,8 +461,10 @@ export class UsersService {
             id: true,
             displayName: true,
             avatarUrl: true,
+            email: true,
             level: true,
             xp: true,
+            coins: true,
           },
         },
       },
@@ -327,8 +481,10 @@ export class UsersService {
             id: true,
             displayName: true,
             avatarUrl: true,
+            email: true,
             level: true,
             xp: true,
+            coins: true,
           },
         });
       }),

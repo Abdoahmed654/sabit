@@ -5,12 +5,14 @@ import {
   Body,
   Param,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ChallengesService } from './challenges.service';
 import { CreateChallengeDto, UpdateProgressDto } from './dto';
-import { CurrentUser, Public } from '../../common';
+import { CurrentUser, Public, JwtAuthGuard } from '../../common';
 
+@UseGuards(JwtAuthGuard)
 @ApiTags('challenges')
 @Controller('challenges')
 export class ChallengesController {

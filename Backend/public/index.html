@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sabit - Islamic Gamified App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🕌 Sabit</h1>
+                <p class="subtitle">Islamic Gamified App</p>
+            </div>
+            <div class="user-info" id="userInfo">
+                <button class="btn btn-primary" id="loginBtn">Login</button>
+            </div>
+        </header>
+
+        <!-- Login Modal -->
+        <div class="modal" id="loginModal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Login</h2>
+                <form id="loginForm">
+                    <input type="email" id="email" placeholder="Email" required>
+                    <input type="password" id="password" placeholder="Password" required>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+                <p class="modal-footer">
+                    Don't have an account? 
+                    <a href="#" id="showRegister">Register</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Register Modal -->
+        <div class="modal" id="registerModal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Register</h2>
+                <form id="registerForm">
+                    <input type="text" id="regDisplayName" placeholder="Display Name" required>
+                    <input type="email" id="regEmail" placeholder="Email" required>
+                    <input type="password" id="regPassword" placeholder="Password" required>
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </form>
+                <p class="modal-footer">
+                    Already have an account? 
+                    <a href="#" id="showLogin">Login</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="challenges">🏆 Challenges</button>
+                <button class="tab-btn" data-tab="daily">📿 Daily Actions</button>
+                <button class="tab-btn" data-tab="leaderboard">🥇 Leaderboard</button>
+            </div>
+
+            <!-- Challenges Tab -->
+            <div class="tab-content active" id="challenges">
+                <div class="section-header">
+                    <h2>Active Challenges</h2>
+                    <p>Join challenges and complete tasks to earn rewards!</p>
+                </div>
+                <div id="challengesList" class="challenges-grid">
+                    <div class="loading">Loading challenges...</div>
+                </div>
+            </div>
+
+            <!-- Daily Actions Tab -->
+            <div class="tab-content" id="daily">
+                <div class="section-header">
+                    <h2>Daily Actions</h2>
+                    <p>Complete your daily Islamic activities and earn XP & coins!</p>
+                </div>
+
+                <!-- Quote of the Day -->
+                <div class="quote-card" id="quoteCard">
+                    <div class="loading">Loading quote...</div>
+                </div>
+
+                <!-- Daily Tasks from Challenges -->
+                <div class="daily-tasks-section">
+                    <h3>📋 My Daily Tasks</h3>
+                    <div id="dailyTasksList">
+                        <div class="loading">Login to see your daily tasks</div>
+                    </div>
+                </div>
+
+                <!-- Prayer Times -->
+                <div class="prayer-times-section">
+                    <h3>🕌 Prayer Times</h3>
+                    <div id="prayerTimesList">
+                        <div class="loading">Loading prayer times...</div>
+                    </div>
+                </div>
+
+                <!-- Azkar Counters -->
+                <div class="azkar-section">
+                    <h3>📿 Azkar</h3>
+                    <div class="azkar-filters">
+                        <button class="azkar-filter-btn active" data-category="all">All</button>
+                        <button class="azkar-filter-btn" data-category="MORNING">Morning</button>
+                        <button class="azkar-filter-btn" data-category="EVENING">Evening</button>
+                        <button class="azkar-filter-btn" data-category="AFTER_PRAYER">After Prayer</button>
+                        <button class="azkar-filter-btn" data-category="BEFORE_SLEEP">Before Sleep</button>
+                    </div>
+                    <div id="azkarList">
+                        <div class="loading">Login to see azkar</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3>⚡ Quick Actions</h3>
+                    <div class="action-buttons" id="actionButtons">
+                        <button class="action-btn" data-action="CHARITY">
+                            💰 Charity<br><small>+100 XP, +20 coins</small>
+                        </button>
+                        <button class="action-btn" data-action="QURAN_READ">
+                            📖 Quran Read<br><small>+60 XP, +12 coins</small>
+                        </button>
+                        <button class="action-btn" data-action="DUA">
+                            🤲 Dua<br><small>+30 XP, +6 coins</small>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard Tab -->
+            <div class="tab-content" id="leaderboard">
+                <div class="section-header">
+                    <h2>Leaderboard</h2>
+                    <p>Top users by XP</p>
+                </div>
+                <div class="leaderboard-tabs">
+                    <button class="leaderboard-tab-btn active" data-type="xp">XP</button>
+                    <button class="leaderboard-tab-btn" data-type="coins">Coins</button>
+                </div>
+                <div id="leaderboardList" class="leaderboard-list">
+                    <div class="loading">Loading leaderboard...</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Toast Notification -->
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

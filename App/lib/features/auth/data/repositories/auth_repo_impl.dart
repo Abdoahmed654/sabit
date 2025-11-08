@@ -43,14 +43,17 @@ class AuthRepoImpl extends AuthRepo  {
 
     final newAccessToken = res.data['accessToken'];
     final newRefreshToken = res.data['refreshToken'];
+    final user = UserModel.fromJson(res.data["user"] as Map<String, dynamic>);
+
     if (newAccessToken != null && newRefreshToken != null) {
       await AuthStorage.saveToken(
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
+        userId: user.id,
       );
     }
 
-    return UserModel.fromJson(res.data["user"] as Map<String, dynamic>);
+    return user;
   }
 
   @override
@@ -78,14 +81,17 @@ class AuthRepoImpl extends AuthRepo  {
 
     final newAccessToken = res.data['accessToken'];
     final newRefreshToken = res.data['refreshToken'];
+    final user = UserModel.fromJson(res.data["user"] as Map<String, dynamic>);
+
     if (newAccessToken != null && newRefreshToken != null) {
       await AuthStorage.saveToken(
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
+        userId: user.id,
       );
     }
 
-    return UserModel.fromJson(res.data["user"] as Map<String, dynamic>);
+    return user;
   }
 
   @override

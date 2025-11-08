@@ -74,6 +74,24 @@ export class UsersController {
     return this.usersService.blockFriendRequest(user.id, friendshipId);
   }
 
+  @Post('friends/:friendId/unfriend')
+  @ApiOperation({ summary: 'Unfriend/remove a friend' })
+  async unfriend(
+    @CurrentUser() user: any,
+    @Param('friendId') friendId: string,
+  ) {
+    return this.usersService.unfriend(user.id, friendId);
+  }
+
+  @Post('friends/:friendId/block-friend')
+  @ApiOperation({ summary: 'Block an existing friend' })
+  async blockFriend(
+    @CurrentUser() user: any,
+    @Param('friendId') friendId: string,
+  ) {
+    return this.usersService.blockFriend(user.id, friendId);
+  }
+
   @Get('friends/requests/pending')
   @ApiOperation({ summary: 'Get pending friend requests' })
   async getPendingRequests(@CurrentUser() user: any) {

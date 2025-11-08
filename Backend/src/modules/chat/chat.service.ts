@@ -12,7 +12,44 @@ export class ChatService {
     });
   }
 
-  async getAllGroups() {
+  async getAllGroups(userId?: string) {
+    if (userId) {
+      // Return public groups + private groups where user is a member
+      return this.prisma.chatGroup.findMany({
+        where: {
+          OR: [
+            { type: 'PUBLIC' },
+            { type: 'CHALLENGE' },
+            {
+              type: 'PRIVATE',
+              members: {
+                some: {
+                  userId: userId,
+                },
+              },
+            },
+          ],
+        },
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  displayName: true,
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+    }
+
+    // If no userId, return only public groups
     return this.prisma.chatGroup.findMany({
       where: {
         type: 'PUBLIC',
@@ -89,6 +126,35 @@ export class ChatService {
       },
       take: limit,
     });
+  }
+
+  async leaveGroup(userId: string, groupId: string) {
+    const group = await this.prisma.chatGroup.findUnique({
+      where: { id: groupId },
+    });
+
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    // Find the membership
+    const membership = await this.prisma.groupMember.findFirst({
+      where: {
+        userId,
+        groupId,
+      },
+    });
+
+    if (!membership) {
+      throw new NotFoundException('You are not a member of this group');
+    }
+
+    // Delete the membership
+    await this.prisma.groupMember.delete({
+      where: { id: membership.id },
+    });
+
+    return { message: 'Successfully left the group' };
   }
 }
 
