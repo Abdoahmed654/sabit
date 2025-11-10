@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat WebSocket Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 30px auto;
+    }
+    #messages {
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      list-style: none;
+    }
+    #messages li {
+      margin: 6px 0;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+    .me {
+      background: #d1ffd1;
+      text-align: right;
+    }
+    .other {
+      background: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+  <h1>WebSocket Chat Test</h1>
+
+  <div>
+    <label>Group ID:</label>
+    <input id="groupId" value="123" />
+    <button id="join">Join Group</button>
+  </div>
+
+  <div>
+    <label>Message:</label>
+    <input id="message" placeholder="Type a message..." />
+    <button id="send">Send</button>
+  </div>
+
+  <h3>Messages:</h3>
+  <ul id="messages"></ul>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    // 👤 Fixed user ID for this client
+    const USER_ID = "f1b87d81-0f8b-4f95-90d8-fbfb31bf2a49";
+
+    // 1️⃣ Connect to your NestJS WebSocket Gateway
+    const socket = io("http://localhost:3000", {
+      transports: ["websocket"], // Use pure WebSocket
+    });
+
+    // 2️⃣ Log connection status
+    socket.on("connect", () => {
+      console.log("✅ Connected with ID:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("❌ Disconnected from server");
+    });
+
+    // 3️⃣ Join a group
+    document.getElementById("join").addEventListener("click", () => {
+      const groupId = document.getElementById("groupId").value;
+      socket.emit("joinGroup", { groupId });
+      console.log("➡️ Joined group:", groupId);
+    });
+
+    // 4️⃣ Send a message
+    document.getElementById("send").addEventListener("click", () => {
+      const groupId = document.getElementById("groupId").value; 
+      const content = document.getElementById("message").value.trim();
+      if (!content) return;
+
+      socket.emit("sendMessage", { userId: USER_ID, groupId, content });
+      document.getElementById("message").value = "";
+    });
+
+    // 5️⃣ Listen for new messages
+    socket.on("newMessage", (msg) => {
+      console.log("💬 New message:", msg);
+
+      const li = document.createElement("li");
+      li.className = msg.userId === USER_ID ? "me" : "other";
+      li.textContent =
+        msg.userId === USER_ID
+          ? `You: ${msg.content}`
+          : `${msg.userId.slice(0, 6)}: ${msg.content}`;
+
+      document.getElementById("messages").appendChild(li);
+      document.getElementById("messages").scrollTop =
+        document.getElementById("messages").scrollHeight;
+    });
+  </script>
+</body>
+</html>

@@ -31,6 +31,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       password: event.password,
     ));
 
+
     result.fold(
       (failure) {
         emit(AuthFailure(failure.message));

@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { ChatService } from './chat.service';
-import { CreateGroupDto, SendMessageDto } from './dto';
+import { AddMemberDto, CreateGroupDto, SendMessageDto } from './dto';
 import { CurrentUser, Public, JwtAuthGuard } from '../../common';
 
 @UseGuards(JwtAuthGuard)
@@ -21,9 +21,10 @@ export class ChatController {
 
   @ApiBearerAuth()
   @Post('groups')
-  @ApiOperation({ summary: 'Create a chat group' })
-  async createGroup(@Body() dto: CreateGroupDto) {
-    return this.chatService.createGroup(dto);
+  @ApiOperation({ summary: 'Create a chat group (user-created groups are always PRIVATE)' })
+  async createGroup(@CurrentUser() user: any, @Body() dto: CreateGroupDto & { memberIds?: string[] }) {
+    // Ignore any client attempt to set type — server enforces PRIVATE for user-created groups
+    return this.chatService.createGroup(user.id, dto);
   }
 
   @ApiBearerAuth()
@@ -66,6 +67,28 @@ export class ChatController {
     @Param('id') groupId: string,
   ) {
     return this.chatService.leaveGroup(user.id, groupId);
+  }
+
+  @ApiBearerAuth()
+  @Post('groups/:id/members')
+  @ApiOperation({ summary: 'Add a member to a group' })
+  async addMember(
+    @CurrentUser() user: any,
+    @Param('id') groupId: string,
+    @Body() dto: AddMemberDto,
+  ) {
+    return this.chatService.addMemberToGroup(user.id, groupId, dto.userId);
+  }
+
+  @ApiBearerAuth()
+  @Delete('groups/:id/members/:memberId')
+  @ApiOperation({ summary: 'Remove a member from a group' })
+  async removeMember(
+    @CurrentUser() user: any,
+    @Param('id') groupId: string,
+    @Param('memberId') memberId: string,
+  ) {
+    return this.chatService.removeMemberFromGroup(user.id, groupId, memberId);
   }
 }
 

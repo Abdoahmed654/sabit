@@ -14,11 +14,11 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Future<Either<Failure, List<ChatGroup>>> getAllGroups() async {
+    // Load cached groups first for instant display
+    final cachedGroups = await localDataSource.getCachedGroups();
+    
     try {
-      // Try to get from cache first
-      final cachedGroups = await localDataSource.getCachedGroups();
-
-      // Fetch from remote
+      // Fetch from remote in the background
       final groups = await remoteDataSource.getAllGroups();
 
       // Cache the new data
@@ -26,13 +26,10 @@ class ChatRepositoryImpl implements ChatRepository {
 
       return Right(groups);
     } catch (e) {
-      // If remote fails, try to return cached data
-      try {
-        final cachedGroups = await localDataSource.getCachedGroups();
-        if (cachedGroups.isNotEmpty) {
-          return Right(cachedGroups);
-        }
-      } catch (_) {}
+      // If remote fails, return cached data if available
+      if (cachedGroups.isNotEmpty) {
+        return Right(cachedGroups);
+      }
 
       return Left(ServerFailure(e.toString()));
     }
@@ -51,12 +48,12 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Future<Either<Failure, ChatGroup>> createGroup({
     required String name,
-    required GroupType type,
+    List<String>? memberIds,
   }) async {
     try {
       final group = await remoteDataSource.createGroup(
         name: name,
-        type: type,
+        memberIds: memberIds,
       );
       return Right(group);
     } catch (e) {
@@ -69,11 +66,11 @@ class ChatRepositoryImpl implements ChatRepository {
     required String groupId,
     int limit = 50,
   }) async {
+    // Load cached messages first for instant display
+    final cachedMessages = await localDataSource.getCachedMessages(groupId);
+    
     try {
-      // Try to get from cache first
-      final cachedMessages = await localDataSource.getCachedMessages(groupId);
-
-      // Fetch from remote
+      // Fetch from remote in the background
       final messages = await remoteDataSource.getMessages(
         groupId: groupId,
         limit: limit,
@@ -85,13 +82,10 @@ class ChatRepositoryImpl implements ChatRepository {
       // Reverse to show oldest first
       return Right(messages.reversed.toList());
     } catch (e) {
-      // If remote fails, try to return cached data
-      try {
-        final cachedMessages = await localDataSource.getCachedMessages(groupId);
-        if (cachedMessages.isNotEmpty) {
-          return Right(cachedMessages.reversed.toList());
-        }
-      } catch (_) {}
+      // If remote fails, return cached data if available
+      if (cachedMessages.isNotEmpty) {
+        return Right(cachedMessages.reversed.toList());
+      }
 
       return Left(ServerFailure(e.toString()));
     }
@@ -117,6 +111,26 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<Either<Failure, void>> leaveGroup(String groupId) async {
     try {
       await remoteDataSource.leaveGroup(groupId);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> addMemberToGroup(String groupId, String userId) async {
+    try {
+      await remoteDataSource.addMemberToGroup(groupId, userId);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> removeMemberFromGroup(String groupId, String memberId) async {
+    try {
+      await remoteDataSource.removeMemberFromGroup(groupId, memberId);
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString()));

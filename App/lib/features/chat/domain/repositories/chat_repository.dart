@@ -8,7 +8,7 @@ abstract class ChatRepository {
   Future<Either<Failure, ChatGroup>> getGroupById(String groupId);
   Future<Either<Failure, ChatGroup>> createGroup({
     required String name,
-    required GroupType type,
+    List<String>? memberIds,
   });
   Future<Either<Failure, List<Message>>> getMessages({
     required String groupId,
@@ -19,5 +19,7 @@ abstract class ChatRepository {
     required String content,
   });
   Future<Either<Failure, void>> leaveGroup(String groupId);
+  Future<Either<Failure, void>> addMemberToGroup(String groupId, String userId);
+  Future<Either<Failure, void>> removeMemberFromGroup(String groupId, String memberId);
 }
 

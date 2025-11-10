@@ -38,7 +38,6 @@ class ChatLocalDataSourceImpl implements ChatLocalDataSource {
       final jsonList = groups.map((group) => group.toJson()).toList();
       await box.put(_groupsKey, jsonList);
     } catch (e) {
-      // Silently fail - caching is not critical
       print('Error caching groups: $e');
     }
   }

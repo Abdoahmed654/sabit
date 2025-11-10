@@ -38,6 +38,11 @@ class LeaveGroupEvent extends ChatEvent {
   LeaveGroupEvent({required this.groupId});
 }
 
+class LeaveWebSocketGroupEvent extends ChatEvent {
+  final String groupId;
+  LeaveWebSocketGroupEvent({required this.groupId});
+}
+
 class NewMessageReceivedEvent extends ChatEvent {
   final Message message;
   NewMessageReceivedEvent({required this.message});
@@ -55,3 +60,42 @@ class ConnectWebSocketEvent extends ChatEvent {
 }
 
 class DisconnectWebSocketEvent extends ChatEvent {}
+
+class CreateGroupEvent extends ChatEvent {
+  final String name;
+  final List<String>? memberIds;
+
+  CreateGroupEvent({
+    required this.name,
+    this.memberIds,
+  });
+
+  @override
+  List<Object?> get props => [name, memberIds];
+}
+
+class AddMemberToGroupEvent extends ChatEvent {
+  final String groupId;
+  final String userId;
+
+  AddMemberToGroupEvent({
+    required this.groupId,
+    required this.userId,
+  });
+
+  @override
+  List<Object?> get props => [groupId, userId];
+}
+
+class RemoveMemberFromGroupEvent extends ChatEvent {
+  final String groupId;
+  final String memberId;
+
+  RemoveMemberFromGroupEvent({
+    required this.groupId,
+    required this.memberId,
+  });
+
+  @override
+  List<Object?> get props => [groupId, memberId];
+}

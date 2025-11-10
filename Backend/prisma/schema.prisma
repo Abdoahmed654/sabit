@@ -376,6 +376,7 @@ enum GroupType {
   PUBLIC
   PRIVATE
   CHALLENGE
+  USER
 }
 
 model Message {

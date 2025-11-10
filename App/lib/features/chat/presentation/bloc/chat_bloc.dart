@@ -14,6 +14,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final ChatLocalDataSource localDataSource;
   final LeaveGroupUsecase leaveGroupUsecase;
 
+  /// Keep track of joined groups
+  final Set<String> _joinedGroups = {};
+
+  /// Keep track if WebSocket is connected
+  bool _webSocketConnected = false;
+
   ChatBloc({
     required this.chatRepository,
     required this.webSocketService,
@@ -25,33 +31,65 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<SendMessageEvent>(_onSendMessage);
     on<JoinGroupEvent>(_onJoinGroup);
     on<LeaveGroupEvent>(_onLeaveGroup);
+    on<LeaveWebSocketGroupEvent>(_onLeaveWebSocketGroup);
     on<NewMessageReceivedEvent>(_onNewMessageReceived);
     on<ConnectWebSocketEvent>(_onConnectWebSocket);
     on<DisconnectWebSocketEvent>(_onDisconnectWebSocket);
+    on<CreateGroupEvent>(_onCreateGroup);
+    on<AddMemberToGroupEvent>(_onAddMemberToGroup);
+    on<RemoveMemberFromGroupEvent>(_onRemoveMemberFromGroup);
   }
 
   Future<void> _onLoadGroups(LoadGroupsEvent event, Emitter<ChatState> emit) async {
-    emit(ChatLoading());
+    // Load cached groups first for instant display
+    final cachedGroups = await localDataSource.getCachedGroups();
+    if (cachedGroups.isNotEmpty) {
+      emit(GroupsLoaded(groups: cachedGroups));
+    } else {
+      emit(ChatLoading());
+    }
+
+    // Then fetch from server
     final result = await chatRepository.getAllGroups();
 
     result.fold(
-      (failure) => emit(ChatError(failure.message)),
+      (failure) {
+        // Only show error if we don't have cached groups
+        if (cachedGroups.isEmpty) {
+          emit(ChatError(failure.message));
+        }
+      },
       (groups) => emit(GroupsLoaded(groups: groups)),
     );
   }
 
   Future<void> _onLoadMessages(LoadMessagesEvent event, Emitter<ChatState> emit) async {
-    emit(ChatLoading());
+    // Load cached messages first for instant display
+    final cachedMessages = await localDataSource.getCachedMessages(event.groupId);
+    if (cachedMessages.isNotEmpty) {
+      emit(MessagesLoaded(
+        groupId: event.groupId,
+        messages: cachedMessages.reversed.toList(),
+      ));
+    } else {
+      emit(ChatLoading());
+    }
+
+    // Then fetch from server
     final result = await chatRepository.getMessages(groupId: event.groupId);
 
     result.fold(
-      (failure) => emit(ChatError(failure.message)),
+      (failure) {
+        // Only show error if we don't have cached messages
+        if (cachedMessages.isEmpty) {
+          emit(ChatError(failure.message));
+        }
+      },
       (messages) => emit(MessagesLoaded(groupId: event.groupId, messages: messages)),
     );
   }
 
   Future<void> _onSendMessage(SendMessageEvent event, Emitter<ChatState> emit) async {
-    // ✅ Step 1: Add optimistic message to UI
     if (state is MessagesLoaded && (state as MessagesLoaded).groupId == event.groupId) {
       final current = List<Message>.from((state as MessagesLoaded).messages);
       final optimistic = Message(
@@ -65,12 +103,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       emit(MessagesLoaded(groupId: event.groupId, messages: current));
     }
 
-    // ✅ Step 2: Send via WebSocket (backend will broadcast to all clients)
     webSocketService.sendMessage(event.userId, event.groupId, event.content);
   }
 
+  /// Join a group safely: only join if not already joined
   void _onJoinGroup(JoinGroupEvent event, Emitter<ChatState> emit) {
-    webSocketService.joinGroup(event.groupId);
+    if (!_joinedGroups.contains(event.groupId)) {
+      webSocketService.joinGroup(event.groupId);
+      _joinedGroups.add(event.groupId);
+    }
   }
 
   Future<void> _onLeaveGroup(LeaveGroupEvent event, Emitter<ChatState> emit) async {
@@ -81,28 +122,35 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     result.fold(
       (failure) => emit(ChatError(failure.message)),
       (_) {
-        webSocketService.leaveGroup(event.groupId);
+        if (_joinedGroups.contains(event.groupId)) {
+          webSocketService.leaveGroup(event.groupId);
+          _joinedGroups.remove(event.groupId);
+        }
         emit(const GroupLeft('Successfully left the group'));
-        // Reload groups after leaving
         add(const LoadGroupsEvent());
       },
     );
+  }
+
+  /// Leave WebSocket room only (no API call) - used when navigating away
+  void _onLeaveWebSocketGroup(LeaveWebSocketGroupEvent event, Emitter<ChatState> emit) {
+    if (_joinedGroups.contains(event.groupId)) {
+      webSocketService.leaveGroup(event.groupId);
+      _joinedGroups.remove(event.groupId);
+    }
   }
 
   Future<void> _onNewMessageReceived(NewMessageReceivedEvent event, Emitter<ChatState> emit) async {
     if (state is MessagesLoaded && (state as MessagesLoaded).groupId == event.message.groupId) {
       final messages = List<Message>.from((state as MessagesLoaded).messages);
 
-      // Remove optimistic message if it exists
       messages.removeWhere((m) =>
           m.id.startsWith('temp-') &&
           m.content == event.message.content &&
           m.senderId == event.message.senderId);
 
-      // Add the real message from server
       messages.add(event.message);
 
-      // Update cache with new messages
       final messageModels = messages
           .map((m) => MessageModel(
                 id: m.id,
@@ -113,17 +161,83 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
                 sender: m.sender,
               ))
           .toList();
+
       await localDataSource.cacheMessages(event.message.groupId, messageModels);
 
       emit(MessagesLoaded(groupId: event.message.groupId, messages: messages));
     }
   }
 
+  /// Connect WebSocket only once
   void _onConnectWebSocket(ConnectWebSocketEvent event, Emitter<ChatState> emit) {
-    webSocketService.connect(event.userId);
+    if (!_webSocketConnected) {
+      webSocketService.connect(event.userId);
+      _webSocketConnected = true;
+
+      /// Setup new message listener
+      webSocketService.onNewMessage((data) {
+        try {
+          final message = MessageModel.fromJson(data as Map<String, dynamic>);
+          add(NewMessageReceivedEvent(message: message));
+        } catch (_) {}
+      });
+
+      // Rejoin all previously joined groups
+      for (final groupId in _joinedGroups) {
+        webSocketService.joinGroup(groupId);
+      }
+    }
   }
 
+  /// Disconnect WebSocket safely
   void _onDisconnectWebSocket(DisconnectWebSocketEvent event, Emitter<ChatState> emit) {
-    webSocketService.disconnect();
+    if (_webSocketConnected) {
+      webSocketService.offNewMessage();
+      webSocketService.disconnect();
+      _webSocketConnected = false;
+      _joinedGroups.clear();
+    }
+  }
+
+  Future<void> _onCreateGroup(CreateGroupEvent event, Emitter<ChatState> emit) async {
+    emit(ChatLoading());
+    final result = await chatRepository.createGroup(
+      name: event.name,
+      memberIds: event.memberIds,
+    );
+
+    result.fold(
+      (failure) => emit(ChatError(failure.message)),
+      (_) {
+        emit(const GroupCreated('Group created successfully!'));
+        add(const LoadGroupsEvent());
+      },
+    );
+  }
+
+  Future<void> _onAddMemberToGroup(AddMemberToGroupEvent event, Emitter<ChatState> emit) async {
+    emit(ChatLoading());
+    final result = await chatRepository.addMemberToGroup(event.groupId, event.userId);
+
+    result.fold(
+      (failure) => emit(ChatError(failure.message)),
+      (_) {
+        emit(const MemberAdded('Member added successfully!'));
+        add(const LoadGroupsEvent());
+      },
+    );
+  }
+
+  Future<void> _onRemoveMemberFromGroup(RemoveMemberFromGroupEvent event, Emitter<ChatState> emit) async {
+    emit(ChatLoading());
+    final result = await chatRepository.removeMemberFromGroup(event.groupId, event.memberId);
+
+    result.fold(
+      (failure) => emit(ChatError(failure.message)),
+      (_) {
+        emit(const MemberRemoved('Member removed successfully!'));
+        add(const LoadGroupsEvent());
+      },
+    );
   }
 }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sapit/features/auth/presentation/state/auth_bloc.dart';
 import 'package:sapit/features/auth/presentation/state/auth_event.dart';
 import 'package:sapit/features/auth/presentation/state/auth_state.dart';
+import 'package:sapit/core/theme/theme_cubit.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -108,13 +109,6 @@ class MoreScreen extends StatelessWidget {
               ),
               _buildMenuItem(
                 context,
-                icon: Icons.person,
-                title: 'Profile',
-                subtitle: 'Edit your profile',
-                onTap: () => context.push('/profile'),
-              ),
-              _buildMenuItem(
-                context,
                 icon: Icons.shopping_bag,
                 title: 'Shop',
                 subtitle: 'Buy items with coins',
@@ -127,15 +121,77 @@ class MoreScreen extends StatelessWidget {
                 subtitle: 'View your achievements',
                 onTap: () => context.push('/badges'),
               ),
-              _buildMenuItem(
-                context,
-                icon: Icons.settings,
-                title: 'Settings',
-                subtitle: 'App preferences',
-                onTap: () {
-                  // TODO: Implement settings
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Settings coming soon!')),
+              // Theme selection (Light / Dark / System)
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.brightness_6,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+                title: const Text(
+                  'Theme',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: const Text('Choose light, dark or system theme'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () async {
+                  final ThemeMode current = context.read<ThemeCubit>().state;
+
+                  await showDialog<void>(
+                    context: context,
+                    builder: (dialogContext) {
+                      ThemeMode selected = current;
+                      return StatefulBuilder(
+                        builder: (context, setState) => AlertDialog(
+                          title: const Text('Select Theme'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              RadioListTile<ThemeMode>(
+                                value: ThemeMode.system,
+                                groupValue: selected,
+                                title: const Text('System'),
+                                onChanged: (v) => setState(() => selected = v!),
+                              ),
+                              RadioListTile<ThemeMode>(
+                                value: ThemeMode.light,
+                                groupValue: selected,
+                                title: const Text('Light'),
+                                onChanged: (v) => setState(() => selected = v!),
+                              ),
+                              RadioListTile<ThemeMode>(
+                                value: ThemeMode.dark,
+                                groupValue: selected,
+                                title: const Text('Dark'),
+                                onChanged: (v) => setState(() => selected = v!),
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                context.read<ThemeCubit>().setTheme(selected);
+                                Navigator.pop(dialogContext);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Theme updated')),
+                                );
+                              },
+                              child: const Text('Apply'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   );
                 },
               ),

@@ -4,7 +4,7 @@ import 'package:sapit/features/friends/domain/entities/friend_request.dart';
 
 abstract class FriendsRepository {
   Future<Either<Failure, UserInfo>> searchUserByEmail(String email);
-  Future<Either<Failure, FriendRequest>> sendFriendRequest(String email);
+  Future<Either<Failure, FriendRequest>> sendFriendRequest({String? email, String? userId});
   Future<Either<Failure, List<FriendRequest>>> getPendingRequests();
   Future<Either<Failure, FriendRequest>> acceptFriendRequest(String friendshipId);
   Future<Either<Failure, FriendRequest>> blockFriendRequest(String friendshipId);

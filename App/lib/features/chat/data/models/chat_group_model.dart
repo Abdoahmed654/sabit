@@ -6,14 +6,31 @@ class ChatGroupModel extends ChatGroup {
     required super.name,
     required super.type,
     required super.createdAt,
+    super.members,
   });
 
   factory ChatGroupModel.fromJson(Map<String, dynamic> json) {
+    List<GroupMember>? members;
+    if (json['members'] != null) {
+      final membersList = json['members'] as List<dynamic>;
+      members = membersList.map((memberJson) {
+        final member = memberJson as Map<String, dynamic>;
+        final user = member['user'] as Map<String, dynamic>?;
+        return GroupMember(
+          id: member['id'] as String,
+          userId: member['userId'] as String,
+          displayName: user?['displayName'] as String?,
+          avatarUrl: user?['avatarUrl'] as String?,
+        );
+      }).toList();
+    }
+
     return ChatGroupModel(
       id: json['id'] as String,
       name: json['name'] as String,
       type: _parseGroupType(json['type'] as String),
       createdAt: DateTime.parse(json['createdAt'] as String),
+      members: members,
     );
   }
 

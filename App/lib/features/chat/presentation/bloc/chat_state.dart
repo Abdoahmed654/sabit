@@ -46,3 +46,27 @@ class ChatError extends ChatState {
   @override
   List<Object?> get props => [message];
 }
+
+class GroupCreated extends ChatState {
+  final String message;
+  const GroupCreated(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class MemberAdded extends ChatState {
+  final String message;
+  const MemberAdded(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class MemberRemoved extends ChatState {
+  final String message;
+  const MemberRemoved(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}

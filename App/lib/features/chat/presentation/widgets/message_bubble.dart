@@ -5,11 +5,13 @@ import 'package:sapit/features/chat/domain/entities/message.dart';
 class MessageBubble extends StatelessWidget {
   final Message message;
   final bool isMe;
+  final VoidCallback? onLongPress;
 
   const MessageBubble({
     super.key,
     required this.message,
     required this.isMe,
+    this.onLongPress,
   });
 
   @override
@@ -38,57 +40,60 @@ class MessageBubble extends StatelessWidget {
             const SizedBox(width: 8),
           ],
           Flexible(
-            child: Column(
-              crossAxisAlignment:
-                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-              children: [
-                if (!isMe && message.sender != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12, bottom: 4),
+            child: GestureDetector(
+              onLongPress: !isMe && message.sender != null ? onLongPress : null,
+              child: Column(
+                crossAxisAlignment:
+                    isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
+                  if (!isMe && message.sender != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12, bottom: 4),
+                      child: Text(
+                        message.sender!.displayName,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[500],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isMe
+                          ? Theme.of(context).primaryColor
+                          : Colors.grey[800],
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(16),
+                        topRight: const Radius.circular(16),
+                        bottomLeft: Radius.circular(isMe ? 16 : 4),
+                        bottomRight: Radius.circular(isMe ? 4 : 16),
+                      ),
+                    ),
                     child: Text(
-                      message.sender!.displayName,
+                      message.content,
                       style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
-                        fontWeight: FontWeight.w500,
+                        color: isMe ? Colors.black : Colors.white,
+                        fontSize: 15,
                       ),
                     ),
                   ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isMe
-                        ? Theme.of(context).primaryColor
-                        : Colors.grey[800],
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(16),
-                      topRight: const Radius.circular(16),
-                      bottomLeft: Radius.circular(isMe ? 16 : 4),
-                      bottomRight: Radius.circular(isMe ? 4 : 16),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4, left: 12, right: 12),
+                    child: Text(
+                      _formatTime(message.createdAt),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[600],
+                      ),
                     ),
                   ),
-                  child: Text(
-                    message.content,
-                    style: TextStyle(
-                      color: isMe ? Colors.black : Colors.white,
-                      fontSize: 15,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 4, left: 12, right: 12),
-                  child: Text(
-                    _formatTime(message.createdAt),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           if (isMe) const SizedBox(width: 8),

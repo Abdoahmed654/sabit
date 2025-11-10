@@ -4,7 +4,6 @@ import 'package:sapit/features/daily/data/models/daily_quote_model.dart';
 import 'package:sapit/features/daily/data/models/prayer_times_model.dart';
 import 'package:sapit/features/daily/data/models/azkar_group_model.dart';
 import 'package:sapit/features/daily/data/models/azkar_completion_model.dart';
-import 'package:sapit/features/daily/data/models/fasting_completion_model.dart';
 
 abstract class DailyRemoteDataSource {
   Future<DailyQuoteModel> getDailyQuote();
@@ -30,8 +29,6 @@ abstract class DailyRemoteDataSource {
 
   // Fasting
   Future<Map<String, dynamic>> completeFasting(String fastingType);
-  Future<List<FastingCompletionModel>> getFastingHistory();
-  Future<FastingStatusModel> getTodayFastingStatus();
 }
 
 class DailyRemoteDataSourceImpl implements DailyRemoteDataSource {
@@ -190,27 +187,4 @@ class DailyRemoteDataSourceImpl implements DailyRemoteDataSource {
     }
   }
 
-  @override
-  Future<List<FastingCompletionModel>> getFastingHistory() async {
-    try {
-      final response = await dio.get('/daily/fasting/history');
-      final List<dynamic> data = response.data as List<dynamic>;
-      return data
-          .map((json) => FastingCompletionModel.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to get fasting history');
-    }
-  }
-
-  @override
-  Future<FastingStatusModel> getTodayFastingStatus() async {
-    try {
-      final response = await dio.get('/daily/fasting/today');
-      return FastingStatusModel.fromJson(response.data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to get fasting status');
-    }
-  }
 }
-

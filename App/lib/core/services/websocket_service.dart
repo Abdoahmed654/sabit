@@ -10,17 +10,14 @@ class WebSocketService {
   io.Socket? _socket;
   bool _isConnected = false;
 
+  bool _hasNewMessageListener = false;
+  bool _hasFriendRequestListener = false;
+  bool _hasFriendRequestAcceptedListener = false;
+
   bool get isConnected => _isConnected;
 
   void connect(String userId) {
-    if (_socket != null && _isConnected) {
-      // ignore: avoid_print
-      print('WebSocket already connected');
-      return;
-    }
-
-    // ignore: avoid_print
-    print('Connecting to WebSocket...');
+    if (_socket != null && _isConnected) return;
 
     _socket = io.io(
       _baseUrl,
@@ -34,25 +31,21 @@ class WebSocketService {
     _socket!.connect();
 
     _socket!.onConnect((_) {
-      // ignore: avoid_print
-      print('✅ WebSocket connected');
       _isConnected = true;
+      print('✅ WebSocket connected');
     });
 
     _socket!.onDisconnect((_) {
-      // ignore: avoid_print
-      print('❌ WebSocket disconnected');
       _isConnected = false;
+      print('❌ WebSocket disconnected');
     });
 
     _socket!.onConnectError((error) {
-      // ignore: avoid_print
-      print('❌ WebSocket connection error: $error');
       _isConnected = false;
+      print('❌ WebSocket connection error: $error');
     });
 
     _socket!.onError((error) {
-      // ignore: avoid_print
       print('❌ WebSocket error: $error');
     });
   }
@@ -63,7 +56,11 @@ class WebSocketService {
       _socket!.dispose();
       _socket = null;
       _isConnected = false;
-      // ignore: avoid_print
+
+      _hasNewMessageListener = false;
+      _hasFriendRequestListener = false;
+      _hasFriendRequestAcceptedListener = false;
+
       print('WebSocket disconnected and disposed');
     }
   }
@@ -72,7 +69,6 @@ class WebSocketService {
   void joinGroup(String groupId) {
     if (_socket != null && _isConnected) {
       _socket!.emit('joinGroup', {'groupId': groupId});
-      // ignore: avoid_print
       print('Joined group: $groupId');
     }
   }
@@ -80,7 +76,6 @@ class WebSocketService {
   void leaveGroup(String groupId) {
     if (_socket != null && _isConnected) {
       _socket!.emit('leaveGroup', {'groupId': groupId});
-      // ignore: avoid_print
       print('Left group: $groupId');
     }
   }
@@ -92,65 +87,50 @@ class WebSocketService {
         'groupId': groupId,
         'content': content,
       });
-      // ignore: avoid_print
       print('Message sent to group: $groupId');
     }
   }
 
+  // Listeners
   void onNewMessage(Function(dynamic) callback) {
-    if (_socket != null) {
+    if (_socket != null && !_hasNewMessageListener) {
       _socket!.on('newMessage', callback);
+      _hasNewMessageListener = true;
     }
   }
 
   void offNewMessage() {
-    if (_socket != null) {
+    if (_socket != null && _hasNewMessageListener) {
       _socket!.off('newMessage');
+      _hasNewMessageListener = false;
     }
   }
 
-  // Friend request methods
   void onFriendRequest(Function(dynamic) callback) {
-    if (_socket != null) {
+    if (_socket != null && !_hasFriendRequestListener) {
       _socket!.on('friendRequest', callback);
+      _hasFriendRequestListener = true;
     }
   }
 
   void offFriendRequest() {
-    if (_socket != null) {
+    if (_socket != null && _hasFriendRequestListener) {
       _socket!.off('friendRequest');
+      _hasFriendRequestListener = false;
     }
   }
 
   void onFriendRequestAccepted(Function(dynamic) callback) {
-    if (_socket != null) {
+    if (_socket != null && !_hasFriendRequestAcceptedListener) {
       _socket!.on('friendRequestAccepted', callback);
+      _hasFriendRequestAcceptedListener = true;
     }
   }
 
   void offFriendRequestAccepted() {
-    if (_socket != null) {
+    if (_socket != null && _hasFriendRequestAcceptedListener) {
       _socket!.off('friendRequestAccepted');
-    }
-  }
-
-  // Generic event listener
-  void on(String event, Function(dynamic) callback) {
-    if (_socket != null) {
-      _socket!.on(event, callback);
-    }
-  }
-
-  void off(String event) {
-    if (_socket != null) {
-      _socket!.off(event);
-    }
-  }
-
-  void emit(String event, dynamic data) {
-    if (_socket != null && _isConnected) {
-      _socket!.emit(event, data);
+      _hasFriendRequestAcceptedListener = false;
     }
   }
 }
-

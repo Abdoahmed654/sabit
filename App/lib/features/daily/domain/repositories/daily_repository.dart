@@ -4,7 +4,6 @@ import 'package:sapit/features/daily/domain/entities/prayer_times.dart';
 import 'package:sapit/features/daily/domain/entities/azkar_group.dart';
 import 'package:sapit/features/daily/domain/entities/azkar.dart';
 import 'package:sapit/features/daily/domain/entities/azkar_completion.dart';
-import 'package:sapit/features/daily/domain/entities/fasting_completion.dart';
 
 abstract class DailyRepository {
   Future<DailyQuote> getDailyQuote();
@@ -30,7 +29,6 @@ abstract class DailyRepository {
 
   // Fasting
   Future<Map<String, dynamic>> completeFasting(String fastingType);
-  Future<List<FastingCompletion>> getFastingHistory();
-  Future<FastingStatus> getTodayFastingStatus();
+
 }
 

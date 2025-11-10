@@ -1,14 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:sapit/features/chat/data/models/chat_group_model.dart';
 import 'package:sapit/features/chat/data/models/message_model.dart';
-import 'package:sapit/features/chat/domain/entities/chat_group.dart';
 
 abstract class ChatRemoteDataSource {
   Future<List<ChatGroupModel>> getAllGroups();
   Future<ChatGroupModel> getGroupById(String groupId);
   Future<ChatGroupModel> createGroup({
     required String name,
-    required GroupType type,
+    List<String>? memberIds,
   });
   Future<List<MessageModel>> getMessages({
     required String groupId,
@@ -19,6 +18,8 @@ abstract class ChatRemoteDataSource {
     required String content,
   });
   Future<void> leaveGroup(String groupId);
+  Future<void> addMemberToGroup(String groupId, String userId);
+  Future<void> removeMemberFromGroup(String groupId, String memberId);
 }
 
 class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
@@ -52,16 +53,16 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   @override
   Future<ChatGroupModel> createGroup({
     required String name,
-    required GroupType type,
+    List<String>? memberIds,
   }) async {
     try {
-      final response = await dio.post(
-        '/chat/groups',
-        data: {
-          'name': name,
-          'type': type.name,
-        },
-      );
+      final Map<String, dynamic> data = {
+        'name': name,
+      };
+      if (memberIds != null && memberIds.isNotEmpty) {
+        data['memberIds'] = memberIds;
+      }
+      final response = await dio.post('/chat/groups', data: data);
       return ChatGroupModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Failed to create group');
@@ -112,6 +113,27 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       await dio.delete('/chat/groups/$groupId/leave');
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Failed to leave group');
+    }
+  }
+
+  @override
+  Future<void> addMemberToGroup(String groupId, String userId) async {
+    try {
+      await dio.post(
+        '/chat/groups/$groupId/members',
+        data: {'userId': userId},
+      );
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? 'Failed to add member');
+    }
+  }
+
+  @override
+  Future<void> removeMemberFromGroup(String groupId, String memberId) async {
+    try {
+      await dio.delete('/chat/groups/$groupId/members/$memberId');
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? 'Failed to remove member');
     }
   }
 }

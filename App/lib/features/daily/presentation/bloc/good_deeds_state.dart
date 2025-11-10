@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:sapit/features/daily/domain/entities/azkar_group.dart';
 import 'package:sapit/features/daily/domain/entities/azkar_completion.dart';
-import 'package:sapit/features/daily/domain/entities/fasting_completion.dart';
 
 abstract class GoodDeedsState extends Equatable {
   const GoodDeedsState();
@@ -66,30 +65,6 @@ class AzkarCompletionsLoaded extends GoodDeedsState {
   List<Object?> get props => [completions];
 }
 
-// Fasting States
-class FastingStatusLoaded extends GoodDeedsState {
-  final FastingStatus status;
-
-  const FastingStatusLoaded(this.status);
-
-  @override
-  List<Object?> get props => [status];
-}
-
-class FastingCompleted extends GoodDeedsState {
-  final int xpEarned;
-  final int coinsEarned;
-  final String message;
-
-  const FastingCompleted({
-    required this.xpEarned,
-    required this.coinsEarned,
-    this.message = 'Fasting recorded successfully!',
-  });
-
-  @override
-  List<Object?> get props => [xpEarned, coinsEarned, message];
-}
 
 // Error State
 class GoodDeedsError extends GoodDeedsState {

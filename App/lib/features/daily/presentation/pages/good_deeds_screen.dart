@@ -6,7 +6,6 @@ import 'package:sapit/features/daily/presentation/bloc/good_deeds_event.dart';
 import 'package:sapit/features/daily/presentation/bloc/good_deeds_state.dart';
 import 'package:sapit/features/daily/domain/entities/azkar_group.dart';
 import 'package:sapit/features/daily/presentation/pages/azkar_group_detail_screen.dart';
-import 'package:sapit/features/daily/presentation/pages/fasting_screen.dart';
 
 class GoodDeedsScreen extends StatefulWidget {
   const GoodDeedsScreen({super.key});
@@ -24,7 +23,6 @@ class _GoodDeedsRedesignedScreenState extends State<GoodDeedsScreen> {
     super.initState();
     _bloc = di.sl<GoodDeedsBloc>();
     _bloc.add(const LoadAzkarGroupsEvent());
-    _bloc.add(const LoadFastingStatusEvent());
   }
 
   @override
@@ -85,20 +83,6 @@ class _GoodDeedsRedesignedScreenState extends State<GoodDeedsScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Fasting Card
-                  _buildFastingCard(context),
-                  const SizedBox(height: 16),
-
-                  // Azkar Groups Section
-                  const Text(
-                    'Azkar Groups',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
                   // Azkar Groups Grid
                   ...state.groups.map((group) => _buildAzkarGroupCard(
                         context,
@@ -114,83 +98,6 @@ class _GoodDeedsRedesignedScreenState extends State<GoodDeedsScreen> {
             child: Text('Pull to refresh'),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildFastingCard(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => BlocProvider.value(
-                value: _bloc,
-                child: const FastingScreen(),
-              ),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.nightlight_round,
-                  size: 32,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Fasting',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Record your fasting',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.white,
-                size: 20,
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

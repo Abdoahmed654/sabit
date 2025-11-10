@@ -31,7 +31,7 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
 
   void _sendFriendRequest() {
     if (_formKey.currentState!.validate()) {
-      context.read<FriendsBloc>().add(SendFriendRequestEvent(_emailController.text.trim()));
+      context.read<FriendsBloc>().add(SendFriendRequestEvent(email: _emailController.text.trim()));
     }
   }
 

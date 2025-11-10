@@ -186,34 +186,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                       ),
-                      const SizedBox(height: 12),
-                      BlocBuilder<DailyBloc, DailyState>(
-                        bloc: _dailyBloc,
-                        builder: (context, dailyState) {
-                          // TODO: Add daily tasks loading and display
-                          return Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                children: [
-                                  Icon(Icons.task_alt, size: 48, color: Colors.grey),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'No active tasks',
-                                    style: Theme.of(context).textTheme.titleMedium,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Join challenges to get daily tasks',
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
                     ],
                   ),
                 ),

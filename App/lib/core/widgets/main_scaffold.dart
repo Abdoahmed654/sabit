@@ -65,10 +65,6 @@ class _MainScaffoldState extends State<MainScaffold> {
             label: 'Good Deeds',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.emoji_events),
-            label: 'Challenges',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.chat),
             label: 'Chat',
           ),

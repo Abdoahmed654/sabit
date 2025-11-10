@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:sapit/core/widgets/main_scaffold.dart';
 import 'package:sapit/features/auth/presentation/pages/login_screen.dart';
 import 'package:sapit/features/auth/presentation/pages/register_screen.dart';
-import 'package:sapit/features/challenges/presentation/pages/challenges_screen.dart';
 import 'package:sapit/features/chat/presentation/pages/chat_groups_screen.dart';
 import 'package:sapit/features/daily/presentation/pages/good_deeds_screen.dart';
 import 'package:sapit/features/friends/presentation/pages/add_friend_screen.dart';
@@ -55,14 +54,6 @@ class AppRouter {
         ),
       ),
       GoRoute(
-        path: '/challenges',
-        name: 'challenges',
-        builder: (context, state) => MainScaffold(
-          currentPath: state.uri.toString(),
-          child: const ChallengesScreen(),
-        ),
-      ),
-      GoRoute(
         path: '/chat',
         name: 'chat',
         builder: (context, state) => MainScaffold(
@@ -102,7 +93,7 @@ class AppRouter {
         path: '/leaderboard',
         name: 'leaderboard',
         builder: (context, state) => const LeaderboardScreen(),
-      ),
+      ), 
     ],
   );
 

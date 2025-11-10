@@ -22,6 +22,7 @@ class AuthFormContainer extends StatelessWidget {
 
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
+        print(state);
         final isLoading = state is AuthLoading;
 
         return Column(

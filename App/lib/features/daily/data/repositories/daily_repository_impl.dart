@@ -4,7 +4,6 @@ import 'package:sapit/features/daily/domain/entities/daily_quote.dart';
 import 'package:sapit/features/daily/domain/entities/prayer_times.dart';
 import 'package:sapit/features/daily/domain/entities/azkar_group.dart';
 import 'package:sapit/features/daily/domain/entities/azkar_completion.dart';
-import 'package:sapit/features/daily/domain/entities/fasting_completion.dart';
 import 'package:sapit/features/daily/domain/repositories/daily_repository.dart';
 
 class DailyRepositoryImpl implements DailyRepository {
@@ -80,17 +79,6 @@ class DailyRepositoryImpl implements DailyRepository {
     return await remoteDataSource.completeFasting(fastingType);
   }
 
-  @override
-  Future<List<FastingCompletion>> getFastingHistory() async {
-    final models = await remoteDataSource.getFastingHistory();
-    return models.map((model) => model.toEntity()).toList();
-  }
-
-  @override
-  Future<FastingStatus> getTodayFastingStatus() async {
-    final model = await remoteDataSource.getTodayFastingStatus();
-    return model.toEntity();
-  }
 
   String _categoryToString(AzkarCategory category) {
     switch (category) {

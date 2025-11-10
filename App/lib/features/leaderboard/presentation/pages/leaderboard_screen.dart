@@ -14,36 +14,17 @@ class LeaderboardScreen extends StatefulWidget {
 
 class _LeaderboardScreenState extends State<LeaderboardScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
   late LeaderboardBloc _leaderboardBloc;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
     _leaderboardBloc = di.sl<LeaderboardBloc>();
     _leaderboardBloc.add(const LoadXpLeaderboardEvent());
-
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        switch (_tabController.index) {
-          case 0:
-            _leaderboardBloc.add(const LoadXpLeaderboardEvent());
-            break;
-          case 1:
-            _leaderboardBloc.add(const LoadCoinsLeaderboardEvent());
-            break;
-          case 2:
-            _leaderboardBloc.add(const LoadFriendsLeaderboardEvent());
-            break;
-        }
-      }
-    });
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _leaderboardBloc.close();
     super.dispose();
   }
@@ -53,14 +34,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Leaderboard'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'XP', icon: Icon(Icons.bolt)),
-            Tab(text: 'Coins', icon: Icon(Icons.monetization_on)),
-            Tab(text: 'Friends', icon: Icon(Icons.people)),
-          ],
-        ),
       ),
       body: BlocProvider.value(
         value: _leaderboardBloc,
@@ -84,22 +57,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     const SizedBox(height: 8),
                     Text(state.message),
                     const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        switch (_tabController.index) {
-                          case 0:
-                            _leaderboardBloc.add(const LoadXpLeaderboardEvent());
-                            break;
-                          case 1:
-                            _leaderboardBloc.add(const LoadCoinsLeaderboardEvent());
-                            break;
-                          case 2:
-                            _leaderboardBloc.add(const LoadFriendsLeaderboardEvent());
-                            break;
-                        }
-                      },
-                      child: const Text('Retry'),
-                    ),
                   ],
                 ),
               );
@@ -131,21 +88,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 );
               }
 
-              return RefreshIndicator(
-                onRefresh: () async {
-                  switch (_tabController.index) {
-                    case 0:
-                      _leaderboardBloc.add(const LoadXpLeaderboardEvent());
-                      break;
-                    case 1:
-                      _leaderboardBloc.add(const LoadCoinsLeaderboardEvent());
-                      break;
-                    case 2:
-                      _leaderboardBloc.add(const LoadFriendsLeaderboardEvent());
-                      break;
-                  }
-                },
-                child: ListView.builder(
+              return ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: state.entries.length,
                   itemBuilder: (context, index) {
@@ -226,7 +169,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       ),
                     );
                   },
-                ),
               );
             }
 

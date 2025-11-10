@@ -3,7 +3,7 @@ import 'package:sapit/features/friends/data/models/friend_request_model.dart';
 
 abstract class FriendsRemoteDataSource {
   Future<UserInfoModel> searchUserByEmail(String email);
-  Future<FriendRequestModel> sendFriendRequest(String email);
+  Future<FriendRequestModel> sendFriendRequest({String? email, String? userId});
   Future<List<FriendRequestModel>> getPendingRequests();
   Future<FriendRequestModel> acceptFriendRequest(String friendshipId);
   Future<FriendRequestModel> blockFriendRequest(String friendshipId);
@@ -30,8 +30,15 @@ class FriendsRemoteDataSourceImpl implements FriendsRemoteDataSource {
   }
 
   @override
-  Future<FriendRequestModel> sendFriendRequest(String email) async {
-    final response = await dio.post('/users/friends/request', data: {'email': email});
+  Future<FriendRequestModel> sendFriendRequest({String? email, String? userId}) async {
+    final Map<String, dynamic> data = {};
+    if (email != null) {
+      data['email'] = email;
+    }
+    if (userId != null) {
+      data['friendId'] = userId;
+    }
+    final response = await dio.post('/users/friends/request', data: data);
     return FriendRequestModel.fromJson(response.data);
   }
 

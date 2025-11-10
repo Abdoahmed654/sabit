@@ -17,12 +17,13 @@ class SearchUserEvent extends FriendsEvent {
 }
 
 class SendFriendRequestEvent extends FriendsEvent {
-  final String email;
+  final String? email;
+  final String? userId;
 
-  const SendFriendRequestEvent(this.email);
+  const SendFriendRequestEvent({this.email, this.userId});
 
   @override
-  List<Object?> get props => [email];
+  List<Object?> get props => [email, userId];
 }
 
 class LoadPendingRequestsEvent extends FriendsEvent {

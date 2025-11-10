@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sapit/core/usecases/Usecase.dart';
 import 'package:sapit/core/services/websocket_service.dart';
+import 'package:sapit/features/friends/data/datasources/friends_local_datasource.dart';
 import 'package:sapit/features/friends/domain/usecases/accept_friend_request_usecase.dart';
 import 'package:sapit/features/friends/domain/usecases/block_friend_request_usecase.dart';
 import 'package:sapit/features/friends/domain/usecases/block_friend_usecase.dart';
@@ -21,6 +22,7 @@ class FriendsBloc extends Bloc<FriendsEvent, FriendsState> {
   final GetFriendsUsecase getFriendsUsecase;
   final UnfriendUsecase unfriendUsecase;
   final BlockFriendUsecase blockFriendUsecase;
+  final FriendsLocalDataSource localDataSource;
   final WebSocketService _webSocketService = WebSocketService();
 
   FriendsBloc({
@@ -32,6 +34,7 @@ class FriendsBloc extends Bloc<FriendsEvent, FriendsState> {
     required this.getFriendsUsecase,
     required this.unfriendUsecase,
     required this.blockFriendUsecase,
+    required this.localDataSource,
   }) : super(const FriendsInitial()) {
     on<SearchUserEvent>(_onSearchUser);
     on<SendFriendRequestEvent>(_onSendFriendRequest);
@@ -83,7 +86,10 @@ class FriendsBloc extends Bloc<FriendsEvent, FriendsState> {
   Future<void> _onSendFriendRequest(SendFriendRequestEvent event, Emitter<FriendsState> emit) async {
     emit(const FriendsLoading());
 
-    final result = await sendFriendRequestUsecase.call(SendFriendRequestParams(event.email));
+    final result = await sendFriendRequestUsecase.call(SendFriendRequestParams(
+      email: event.email,
+      userId: event.userId,
+    ));
 
     result.fold(
       (failure) {
@@ -96,13 +102,23 @@ class FriendsBloc extends Bloc<FriendsEvent, FriendsState> {
   }
 
   Future<void> _onLoadPendingRequests(LoadPendingRequestsEvent event, Emitter<FriendsState> emit) async {
-    emit(const FriendsLoading());
+    // Load cached requests first for instant display
+    final cachedRequests = await localDataSource.getCachedPendingRequests();
+    if (cachedRequests.isNotEmpty) {
+      emit(PendingRequestsLoaded(cachedRequests));
+    } else {
+      emit(const FriendsLoading());
+    }
 
+    // Then fetch from server
     final result = await getPendingRequestsUsecase.call(NoParams());
 
     result.fold(
       (failure) {
-        emit(FriendsError(failure.message));
+        // Only show error if we don't have cached requests
+        if (cachedRequests.isEmpty) {
+          emit(FriendsError(failure.message));
+        }
       },
       (requests) {
         emit(PendingRequestsLoaded(requests));
@@ -145,13 +161,23 @@ class FriendsBloc extends Bloc<FriendsEvent, FriendsState> {
   }
 
   Future<void> _onLoadFriends(LoadFriendsEvent event, Emitter<FriendsState> emit) async {
-    emit(const FriendsLoading());
+    // Load cached friends first for instant display
+    final cachedFriends = await localDataSource.getCachedFriends();
+    if (cachedFriends.isNotEmpty) {
+      emit(FriendsLoaded(cachedFriends));
+    } else {
+      emit(const FriendsLoading());
+    }
 
+    // Then fetch from server
     final result = await getFriendsUsecase.call(NoParams());
 
     result.fold(
       (failure) {
-        emit(FriendsError(failure.message));
+        // Only show error if we don't have cached friends
+        if (cachedFriends.isEmpty) {
+          emit(FriendsError(failure.message));
+        }
       },
       (friends) {
         emit(FriendsLoaded(friends));

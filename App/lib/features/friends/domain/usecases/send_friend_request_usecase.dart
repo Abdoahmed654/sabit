@@ -12,16 +12,17 @@ class SendFriendRequestUsecase implements UseCase<FriendRequest, SendFriendReque
 
   @override
   Future<Either<Failure, FriendRequest>> call(SendFriendRequestParams params) async {
-    return await repository.sendFriendRequest(params.email);
+    return await repository.sendFriendRequest(email: params.email, userId: params.userId);
   }
 }
 
 class SendFriendRequestParams extends Equatable {
-  final String email;
+  final String? email;
+  final String? userId;
 
-  const SendFriendRequestParams(this.email);
+  const SendFriendRequestParams({this.email, this.userId});
 
   @override
-  List<Object?> get props => [email];
+  List<Object?> get props => [email, userId];
 }
 
