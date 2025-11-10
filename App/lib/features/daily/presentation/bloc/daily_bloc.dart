@@ -12,6 +12,8 @@ class DailyBloc extends Bloc<DailyEvent, DailyState> {
     on<LoadTodayActionsEvent>(_onLoadTodayActions);
     on<LoadUserActionsEvent>(_onLoadUserActions);
     on<RecordActionEvent>(_onRecordAction);
+    on<CompletePrayerEvent>(_onCompletePrayer);
+    on<LoadTodayPrayersEvent>(_onLoadTodayPrayers);
   }
 
   Future<void> _onLoadDailyQuote(
@@ -20,7 +22,7 @@ class DailyBloc extends Bloc<DailyEvent, DailyState> {
   ) async {
     try {
       final quote = await repository.getDailyQuote();
-      
+
       if (state is DailyLoaded) {
         emit((state as DailyLoaded).copyWith(quote: quote));
       } else {
@@ -41,7 +43,7 @@ class DailyBloc extends Bloc<DailyEvent, DailyState> {
         longitude: event.longitude,
         date: event.date,
       );
-      
+
       if (state is DailyLoaded) {
         emit((state as DailyLoaded).copyWith(prayerTimes: prayerTimes));
       } else {
@@ -58,7 +60,7 @@ class DailyBloc extends Bloc<DailyEvent, DailyState> {
   ) async {
     try {
       final actions = await repository.getTodayActions();
-      
+
       if (state is DailyLoaded) {
         emit((state as DailyLoaded).copyWith(todayActions: actions));
       } else {
@@ -75,7 +77,7 @@ class DailyBloc extends Bloc<DailyEvent, DailyState> {
   ) async {
     try {
       final actions = await repository.getUserActions(days: event.days);
-      
+
       if (state is DailyLoaded) {
         emit((state as DailyLoaded).copyWith(userActions: actions));
       } else {
@@ -95,14 +97,64 @@ class DailyBloc extends Bloc<DailyEvent, DailyState> {
         actionType: event.actionType,
         metadata: event.metadata,
       );
-      
+
       emit(ActionRecorded(action));
-      
+
       // Reload today's actions
       add(const LoadTodayActionsEvent());
     } catch (e) {
       emit(DailyError(e.toString()));
     }
   }
-}
 
+  Future<void> _onCompletePrayer(
+    CompletePrayerEvent event,
+    Emitter<DailyState> emit,
+  ) async {
+    try {
+      final result = await repository.completePrayer(
+        prayerName: event.prayerName,
+        onTime: event.onTime,
+      );
+
+      emit(PrayerCompleted(
+        prayerName: event.prayerName,
+        xpEarned: result['xpEarned'] as int,
+        coinsEarned: result['coinsEarned'] as int,
+      ));
+
+      // Reload today's prayers
+      add(const LoadTodayPrayersEvent());
+    } catch (e) {
+      emit(DailyError(e.toString()));
+    }
+  }
+
+  Future<void> _onLoadTodayPrayers(
+    LoadTodayPrayersEvent event,
+    Emitter<DailyState> emit,
+  ) async {
+    try {
+      final result = await repository.getTodayPrayers();
+      final completed = (result['completed'] as List)
+          .map((e) => e['prayerName'] as String)
+          .toList();
+      final remaining =
+          (result['remaining'] as List).map((e) => e as String).toList();
+
+      if (state is DailyLoaded) {
+        emit((state as DailyLoaded).copyWith(
+          completedPrayers: completed,
+          remainingPrayers: remaining,
+        ));
+      } else {
+        emit(DailyLoaded(
+          completedPrayers: completed,
+          remainingPrayers: remaining,
+        ));
+      }
+    } catch (e) {
+      emit(DailyError(e.toString()));
+    }
+  }
+}

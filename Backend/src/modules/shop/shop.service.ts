@@ -90,11 +90,25 @@ export class ShopService {
         },
       });
 
-      // Add item to user's inventory
+      // Unequip all items of the same type before adding the new item
+      await tx.userItem.updateMany({
+        where: {
+          userId,
+          item: {
+            type: item.type,
+          },
+        },
+        data: {
+          equipped: false,
+        },
+      });
+
+      // Add item to user's inventory and automatically equip it
       const userItem = await tx.userItem.create({
         data: {
           userId,
           itemId: dto.itemId,
+          equipped: true, // Auto-equip the purchased item
         },
         include: {
           item: true,

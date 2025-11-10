@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sapit/core/widgets/floating_character_widget.dart';
 
 class MainScaffold extends StatefulWidget {
   final Widget child;
@@ -48,7 +49,12 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: widget.child,
+      body: Stack(
+        children: [
+          widget.child,
+          const FloatingCharacterWidget(),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _getCurrentIndex(),
         onTap: _onItemTapped,
@@ -77,4 +83,3 @@ class _MainScaffoldState extends State<MainScaffold> {
     );
   }
 }
-

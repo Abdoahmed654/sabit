@@ -52,8 +52,10 @@ class DailyRepositoryImpl implements DailyRepository {
 
   @override
   Future<List<AzkarGroup>> getAzkarGroups({AzkarCategory? category}) async {
-    final categoryString = category != null ? _categoryToString(category) : null;
-    final models = await remoteDataSource.getAzkarGroups(category: categoryString);
+    final categoryString =
+        category != null ? _categoryToString(category) : null;
+    final models =
+        await remoteDataSource.getAzkarGroups(category: categoryString);
     return models.map((model) => model.toEntity()).toList();
   }
 
@@ -75,10 +77,25 @@ class DailyRepositoryImpl implements DailyRepository {
   }
 
   @override
+  Future<Map<String, dynamic>> completePrayer({
+    required String prayerName,
+    bool onTime = false,
+  }) async {
+    return await remoteDataSource.completePrayer(
+      prayerName: prayerName,
+      onTime: onTime,
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> getTodayPrayers() async {
+    return await remoteDataSource.getTodayPrayers();
+  }
+
+  @override
   Future<Map<String, dynamic>> completeFasting(String fastingType) async {
     return await remoteDataSource.completeFasting(fastingType);
   }
-
 
   String _categoryToString(AzkarCategory category) {
     switch (category) {
@@ -95,4 +112,3 @@ class DailyRepositoryImpl implements DailyRepository {
     }
   }
 }
-

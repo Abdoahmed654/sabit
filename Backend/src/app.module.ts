@@ -7,10 +7,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ShopModule } from './modules/shop/shop.module';
-import { ChallengesModule } from './modules/challenges/challenges.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { LeaderboardsModule } from './modules/leaderboards/leaderboards.module';
-import { BadgesModule } from './modules/badges/badges.module';
 import { DailyModule } from './modules/daily/daily.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { JwtAuthGuard } from './common/guards';
@@ -29,10 +27,8 @@ import { JwtAuthGuard } from './common/guards';
     AuthModule,
     UsersModule,
     ShopModule,
-    ChallengesModule,
     ChatModule,
     LeaderboardsModule,
-    BadgesModule,
     DailyModule,
     AdminModule,
   ],

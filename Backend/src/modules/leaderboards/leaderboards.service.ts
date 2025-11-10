@@ -37,33 +37,6 @@ export class LeaderboardsService {
     });
   }
 
-  async getChallengeLeaderboard(challengeId: string, limit = 100) {
-    return this.prisma.challengeProgress.findMany({
-      where: {
-        challengeId,
-        status: {
-          in: ['IN_PROGRESS', 'COMPLETED'],
-        },
-      },
-      select: {
-        user: {
-          select: {
-            id: true,
-            displayName: true,
-            avatarUrl: true,
-            level: true,
-          },
-        },
-        pointsEarned: true,
-        status: true,
-      },
-      orderBy: {
-        pointsEarned: 'desc',
-      },
-      take: limit,
-    });
-  }
-
   async getFriendsLeaderboard(userId: string, type: 'xp' | 'coins' = 'xp') {
     // Get user's friends
     const friendships = await this.prisma.friend.findMany({

@@ -24,20 +24,6 @@ export class LeaderboardsController {
     return this.leaderboardsService.getCoinsLeaderboard(limit ? +limit : 100);
   }
 
-  @Public()
-  @Get('challenge/:id')
-  @ApiOperation({ summary: 'Get challenge leaderboard' })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  async getChallengeLeaderboard(
-    @Param('id') challengeId: string,
-    @Query('limit') limit?: number,
-  ) {
-    return this.leaderboardsService.getChallengeLeaderboard(
-      challengeId,
-      limit ? +limit : 100,
-    );
-  }
-
   @ApiBearerAuth()
   @Get('friends')
   @ApiOperation({ summary: 'Get friends leaderboard' })

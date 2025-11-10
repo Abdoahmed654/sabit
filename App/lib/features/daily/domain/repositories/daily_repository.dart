@@ -19,6 +19,13 @@ abstract class DailyRepository {
     Map<String, dynamic>? metadata,
   });
 
+  // Prayer Completion
+  Future<Map<String, dynamic>> completePrayer({
+    required String prayerName,
+    bool onTime = false,
+  });
+  Future<Map<String, dynamic>> getTodayPrayers();
+
   // Azkar Groups
   Future<List<AzkarGroup>> getAzkarGroups({AzkarCategory? category});
   Future<AzkarGroup> getAzkarGroup(String groupId);
@@ -29,6 +36,4 @@ abstract class DailyRepository {
 
   // Fasting
   Future<Map<String, dynamic>> completeFasting(String fastingType);
-
 }
-

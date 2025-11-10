@@ -7,6 +7,7 @@ import 'package:sapit/features/daily/presentation/bloc/daily_bloc.dart';
 import 'package:sapit/features/daily/presentation/bloc/good_deeds_bloc.dart';
 import 'package:sapit/features/friends/presentation/bloc/friends_bloc.dart';
 import 'package:sapit/features/leaderboard/presentation/bloc/leaderboard_bloc.dart';
+import 'package:sapit/features/shop/presentation/bloc/shop_bloc.dart';
 import 'package:sapit/core/theme/app_theme.dart';
 import 'package:sapit/core/theme/theme_cubit.dart';
 import 'package:sapit/router/app_router.dart';
@@ -16,7 +17,7 @@ void main() async {
   await di.init();
 
   runApp(const SabitApp());
-} 
+}
 
 class SabitApp extends StatelessWidget {
   const SabitApp({super.key});
@@ -31,6 +32,7 @@ class SabitApp extends StatelessWidget {
         BlocProvider(create: (_) => di.sl<DailyBloc>()),
         BlocProvider(create: (_) => di.sl<GoodDeedsBloc>()),
         BlocProvider(create: (_) => di.sl<LeaderboardBloc>()),
+        BlocProvider(create: (_) => di.sl<ShopBloc>()),
         // Theme cubit for runtime theme switching
         BlocProvider(create: (_) => ThemeCubit()),
       ],

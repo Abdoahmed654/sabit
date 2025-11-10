@@ -116,10 +116,10 @@ class MoreScreen extends StatelessWidget {
               ),
               _buildMenuItem(
                 context,
-                icon: Icons.emoji_events,
-                title: 'Badges',
-                subtitle: 'View your achievements',
-                onTap: () => context.push('/badges'),
+                icon: Icons.person,
+                title: 'Character',
+                subtitle: 'Customize your avatar',
+                onTap: () => context.push('/character'),
               ),
               // Theme selection (Light / Dark / System)
               ListTile(
@@ -183,7 +183,9 @@ class MoreScreen extends StatelessWidget {
                                 context.read<ThemeCubit>().setTheme(selected);
                                 Navigator.pop(dialogContext);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Theme updated')),
+                                  const SnackBar(
+                                    content: Text('Theme updated'),
+                                  ),
                                 );
                               },
                               child: const Text('Apply'),
@@ -254,19 +256,12 @@ class MoreScreen extends StatelessWidget {
           color: (iconColor ?? Theme.of(context).primaryColor).withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(
-          icon,
-          color: iconColor ?? Theme.of(context).primaryColor,
-        ),
+        child: Icon(icon, color: iconColor ?? Theme.of(context).primaryColor),
       ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(subtitle),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
     );
   }
 }
-

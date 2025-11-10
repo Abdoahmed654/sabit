@@ -8,6 +8,7 @@ import 'package:sapit/features/daily/presentation/bloc/daily_event.dart';
 import 'package:sapit/features/daily/presentation/bloc/daily_state.dart';
 import 'package:sapit/features/daily/presentation/widgets/daily_quote_widget.dart';
 import 'package:sapit/features/daily/presentation/widgets/prayer_countdown_widget.dart';
+import 'package:sapit/features/daily/presentation/widgets/prayer_tracker_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,9 +31,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _dailyBloc.add(const LoadDailyQuoteEvent());
 
     _dailyBloc.add(const LoadPrayerTimesEvent(
-      latitude: 30.0444, 
+      latitude: 30.0444,
       longitude: 31.2357,
     ));
+
+    _dailyBloc.add(const LoadTodayPrayersEvent());
   }
 
   @override
@@ -77,7 +80,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             gradient: LinearGradient(
                               colors: [
                                 Theme.of(context).primaryColor.withOpacity(0.1),
-                                Theme.of(context).primaryColor.withOpacity(0.05),
+                                Theme.of(context)
+                                    .primaryColor
+                                    .withOpacity(0.05),
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -90,14 +95,20 @@ class _HomeScreenState extends State<HomeScreen> {
                               // Greeting
                               Text(
                                 'As-salamu alaykum,',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
                                       color: Colors.grey[700],
                                     ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 user.displayName,
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: Theme.of(context).primaryColor,
                                     ),
@@ -105,7 +116,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               const SizedBox(height: 20),
                               // Stats Grid
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
                                 children: [
                                   _buildStatItem(
                                     context,
@@ -153,6 +165,27 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 PrayerCountdownWidget(
                                   prayerTimes: dailyState.prayerTimes!,
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+
+                      // Prayer Tracker
+                      BlocBuilder<DailyBloc, DailyState>(
+                        bloc: _dailyBloc,
+                        builder: (context, dailyState) {
+                          if (dailyState is DailyLoaded &&
+                              dailyState.prayerTimes != null) {
+                            return Column(
+                              children: [
+                                PrayerTrackerWidget(
+                                  prayerTimes: dailyState.prayerTimes!,
+                                  completedPrayers: dailyState.completedPrayers,
+                                  remainingPrayers: dailyState.remainingPrayers,
                                 ),
                                 const SizedBox(height: 16),
                               ],
@@ -237,4 +270,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-

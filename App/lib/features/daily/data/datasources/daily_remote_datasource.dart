@@ -19,6 +19,13 @@ abstract class DailyRemoteDataSource {
     Map<String, dynamic>? metadata,
   });
 
+  // Prayer Completion
+  Future<Map<String, dynamic>> completePrayer({
+    required String prayerName,
+    bool onTime = false,
+  });
+  Future<Map<String, dynamic>> getTodayPrayers();
+
   // Azkar Groups
   Future<List<AzkarGroupModel>> getAzkarGroups({String? category});
   Future<AzkarGroupModel> getAzkarGroup(String groupId);
@@ -42,7 +49,8 @@ class DailyRemoteDataSourceImpl implements DailyRemoteDataSource {
       final response = await dio.get('/daily/quote');
       return DailyQuoteModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to get daily quote');
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to get daily quote');
     }
   }
 
@@ -63,7 +71,8 @@ class DailyRemoteDataSourceImpl implements DailyRemoteDataSource {
       );
       return PrayerTimesModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to get prayer times');
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to get prayer times');
     }
   }
 
@@ -73,10 +82,12 @@ class DailyRemoteDataSourceImpl implements DailyRemoteDataSource {
       final response = await dio.get('/daily/actions/today');
       final List<dynamic> data = response.data as List<dynamic>;
       return data
-          .map((json) => DailyActionModel.fromJson(json as Map<String, dynamic>))
+          .map(
+              (json) => DailyActionModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to get today actions');
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to get today actions');
     }
   }
 
@@ -89,10 +100,12 @@ class DailyRemoteDataSourceImpl implements DailyRemoteDataSource {
       );
       final List<dynamic> data = response.data as List<dynamic>;
       return data
-          .map((json) => DailyActionModel.fromJson(json as Map<String, dynamic>))
+          .map(
+              (json) => DailyActionModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to get user actions');
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to get user actions');
     }
   }
 
@@ -129,7 +142,8 @@ class DailyRemoteDataSourceImpl implements DailyRemoteDataSource {
           .map((json) => AzkarGroupModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to get azkar groups');
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to get azkar groups');
     }
   }
 
@@ -139,7 +153,8 @@ class DailyRemoteDataSourceImpl implements DailyRemoteDataSource {
       final response = await dio.get('/daily/azkar-groups/$groupId');
       return AzkarGroupModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to get azkar group');
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to get azkar group');
     }
   }
 
@@ -152,12 +167,14 @@ class DailyRemoteDataSourceImpl implements DailyRemoteDataSource {
       );
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to complete azkar');
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to complete azkar');
     }
   }
 
   @override
-  Future<List<AzkarCompletionModel>> getAzkarCompletions({String? groupId}) async {
+  Future<List<AzkarCompletionModel>> getAzkarCompletions(
+      {String? groupId}) async {
     try {
       final response = await dio.get(
         '/daily/azkars/completions',
@@ -167,10 +184,43 @@ class DailyRemoteDataSourceImpl implements DailyRemoteDataSource {
       );
       final List<dynamic> data = response.data as List<dynamic>;
       return data
-          .map((json) => AzkarCompletionModel.fromJson(json as Map<String, dynamic>))
+          .map((json) =>
+              AzkarCompletionModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to get azkar completions');
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to get azkar completions');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> completePrayer({
+    required String prayerName,
+    bool onTime = false,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/daily/prayer/complete',
+        data: {
+          'prayerName': prayerName,
+          'onTime': onTime,
+        },
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to complete prayer');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getTodayPrayers() async {
+    try {
+      final response = await dio.get('/daily/prayer/today');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to get today prayers');
     }
   }
 
@@ -183,8 +233,8 @@ class DailyRemoteDataSourceImpl implements DailyRemoteDataSource {
       );
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to complete fasting');
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to complete fasting');
     }
   }
-
 }

@@ -52,3 +52,19 @@ class RecordActionEvent extends DailyEvent {
   List<Object?> get props => [actionType, metadata];
 }
 
+class CompletePrayerEvent extends DailyEvent {
+  final String prayerName;
+  final bool onTime;
+
+  const CompletePrayerEvent({
+    required this.prayerName,
+    this.onTime = false,
+  });
+
+  @override
+  List<Object?> get props => [prayerName, onTime];
+}
+
+class LoadTodayPrayersEvent extends DailyEvent {
+  const LoadTodayPrayersEvent();
+}

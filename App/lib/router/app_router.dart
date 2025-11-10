@@ -12,6 +12,8 @@ import 'package:sapit/features/friends/presentation/pages/pending_requests_scree
 import 'package:sapit/features/home/presentation/pages/home_screen.dart';
 import 'package:sapit/features/leaderboard/presentation/pages/leaderboard_screen.dart';
 import 'package:sapit/features/more/presentation/pages/more_screen.dart';
+import 'package:sapit/features/shop/presentation/pages/shop_screen.dart';
+import 'package:sapit/features/character/presentation/pages/character_screen.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
@@ -93,7 +95,17 @@ class AppRouter {
         path: '/leaderboard',
         name: 'leaderboard',
         builder: (context, state) => const LeaderboardScreen(),
-      ), 
+      ),
+      GoRoute(
+        path: '/shop',
+        name: 'shop',
+        builder: (context, state) => const ShopScreen(),
+      ),
+      GoRoute(
+        path: '/character',
+        name: 'character',
+        builder: (context, state) => const CharacterScreen(),
+      ),
     ],
   );
 

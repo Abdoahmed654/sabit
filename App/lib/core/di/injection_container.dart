@@ -44,6 +44,13 @@ import 'package:sapit/features/leaderboard/data/datasources/leaderboard_remote_d
 import 'package:sapit/features/leaderboard/data/repositories/leaderboard_repository_impl.dart';
 import 'package:sapit/features/leaderboard/domain/repositories/leaderboard_repository.dart';
 import 'package:sapit/features/leaderboard/presentation/bloc/leaderboard_bloc.dart';
+import 'package:sapit/features/shop/data/datasources/shop_remote_datasource.dart';
+import 'package:sapit/features/shop/data/repositories/shop_repository_impl.dart';
+import 'package:sapit/features/shop/domain/repositories/shop_repository.dart';
+import 'package:sapit/features/shop/domain/usecases/buy_item.dart';
+import 'package:sapit/features/shop/domain/usecases/get_all_items.dart';
+import 'package:sapit/features/shop/domain/usecases/get_user_inventory.dart';
+import 'package:sapit/features/shop/presentation/bloc/shop_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -152,9 +159,7 @@ Future<void> init() async {
   );
 
   // Repositories
-  sl.registerLazySingleton<DailyRepository>(
-    () => DailyRepositoryImpl(sl()),
-  );
+  sl.registerLazySingleton<DailyRepository>(() => DailyRepositoryImpl(sl()));
 
   // Use cases
   sl.registerLazySingleton(() => GetAzkarGroups(sl()));
@@ -165,14 +170,15 @@ Future<void> init() async {
 
   // BLoC
   sl.registerFactory(() => DailyBloc(repository: sl()));
-  sl.registerFactory(() => GoodDeedsBloc(
-        getAzkarGroups: sl(),
-        getAzkarGroup: sl(),
-        completeAzkar: sl(),
-        getAzkarCompletions: sl(),
-        completeFasting: sl(),
-      ));
-
+  sl.registerFactory(
+    () => GoodDeedsBloc(
+      getAzkarGroups: sl(),
+      getAzkarGroup: sl(),
+      completeAzkar: sl(),
+      getAzkarCompletions: sl(),
+      completeFasting: sl(),
+    ),
+  );
 
   // ========== Leaderboard Feature ==========
 
@@ -188,4 +194,24 @@ Future<void> init() async {
 
   // BLoC
   sl.registerFactory(() => LeaderboardBloc(repository: sl()));
+
+  // ========== Shop Feature ==========
+
+  // Data sources
+  sl.registerLazySingleton<ShopRemoteDataSource>(
+    () => ShopRemoteDataSourceImpl(sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<ShopRepository>(() => ShopRepositoryImpl(sl()));
+
+  // Use cases
+  sl.registerLazySingleton(() => GetAllItems(sl()));
+  sl.registerLazySingleton(() => GetUserInventory(sl()));
+  sl.registerLazySingleton(() => BuyItem(sl()));
+
+  // BLoC
+  sl.registerFactory(
+    () => ShopBloc(getAllItems: sl(), getUserInventory: sl(), buyItem: sl()),
+  );
 }

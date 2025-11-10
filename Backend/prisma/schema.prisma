@@ -20,8 +20,6 @@ model User {
   refreshToken    String?
   friends         Friend[]         @relation("UserFriends")
   inventory       UserItem[]
-  challenges      ChallengeProgress[]
-  badges          UserBadge[]
   dailyActions    DailyAction[]
   messages        Message[]
   purchases       Purchase[]
@@ -100,91 +98,7 @@ model UserItem {
   @@index([itemId])
 }
 
-model Challenge {
-  id            String   @id @default(uuid())
-  title         String
-  description   String
-  startAt       DateTime
-  endAt         DateTime
-  rewardXp      Int
-  rewardCoins   Int
-  isGlobal      Boolean   @default(true)
-  tasks         ChallengeTask[]
-  progresses    ChallengeProgress[]
-  createdAt     DateTime @default(now())
 
-  @@index([startAt])
-  @@index([endAt])
-  @@index([isGlobal])
-}
-
-model ChallengeTask {
-  id            String   @id @default(uuid())
-  challenge     Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
-  challengeId   String
-  title         String
-  type          TaskType
-  goalCount     Int?
-  points        Int       @default(10)
-  params        Json?
-
-  @@index([challengeId])
-}
-
-enum TaskType {
-  DAILY      // One-time daily task
-  COUNT      // Counter-based task (e.g., read Quran 10 pages)
-  STREAK     // Consecutive days task
-  PRAYER     // Prayer-specific task (5 times daily)
-  AZKAR      // Azkar counter task
-}
-
-model ChallengeProgress {
-  id            String   @id @default(uuid())
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId        String
-  challenge     Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
-  challengeId   String
-  status        ProgressStatus @default(IN_PROGRESS)
-  taskProgress  Json?
-  pointsEarned  Int       @default(0)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@unique([userId, challengeId])
-  @@index([userId])
-  @@index([challengeId])
-  @@index([status])
-}
-
-enum ProgressStatus {
-  IN_PROGRESS
-  COMPLETED
-  FAILED
-}
-
-model Badge {
-  id          String   @id @default(uuid())
-  name        String
-  description String
-  iconUrl     String?
-  criteria    Json?
-  users       UserBadge[]
-  createdAt   DateTime @default(now())
-}
-
-model UserBadge {
-  id         String   @id @default(uuid())
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
-  badge      Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-  badgeId    String
-  awardedAt  DateTime @default(now())
-
-  @@unique([userId, badgeId])
-  @@index([userId])
-  @@index([badgeId])
-}
 
 model DailyAction {
   id          String   @id @default(uuid())
@@ -192,7 +106,6 @@ model DailyAction {
   userId      String
   actionType  DailyActionType
   metadata    Json?
-  taskId      String?  // Link to ChallengeTask if this action is for a challenge task
   count       Int      @default(1) // For counter-based actions like Azkar
   createdAt   DateTime @default(now())
 
@@ -200,7 +113,6 @@ model DailyAction {
   @@index([actionType])
   @@index([createdAt])
   @@index([userId, createdAt])
-  @@index([userId, taskId, createdAt])
 }
 
 enum DailyActionType {
@@ -350,13 +262,11 @@ model ChatGroup {
   id          String   @id @default(uuid())
   name        String
   type        GroupType
-  challengeId String?  // Optional reference to challenge
   createdAt   DateTime @default(now())
   messages    Message[]
   members     ChatGroupMember[]
 
   @@index([type])
-  @@index([challengeId])
 }
 
 model ChatGroupMember {
@@ -375,7 +285,6 @@ model ChatGroupMember {
 enum GroupType {
   PUBLIC
   PRIVATE
-  CHALLENGE
   USER
 }
 
@@ -406,7 +315,6 @@ model LeaderboardSnapshot {
 enum LeaderboardType {
   XP
   COINS
-  CHALLENGE
 }
 
 model Purchase {
