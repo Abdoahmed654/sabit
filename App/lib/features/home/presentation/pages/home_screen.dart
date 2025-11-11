@@ -211,14 +211,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           return const SizedBox.shrink();
                         },
                       ),
-
-                      // Today's Tasks from Challenges
-                      Text(
-                        'Today\'s Tasks',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
                     ],
                   ),
                 ),

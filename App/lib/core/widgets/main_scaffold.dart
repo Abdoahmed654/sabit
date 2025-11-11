@@ -20,9 +20,8 @@ class _MainScaffoldState extends State<MainScaffold> {
   int _getCurrentIndex() {
     if (widget.currentPath.startsWith('/home')) return 0;
     if (widget.currentPath.startsWith('/good-deeds')) return 1;
-    if (widget.currentPath.startsWith('/challenges')) return 2;
-    if (widget.currentPath.startsWith('/chat')) return 3;
-    if (widget.currentPath.startsWith('/more')) return 4;
+    if (widget.currentPath.startsWith('/chat')) return 2;
+    if (widget.currentPath.startsWith('/more')) return 3;
     return 0;
   }
 
@@ -35,12 +34,9 @@ class _MainScaffoldState extends State<MainScaffold> {
         context.go('/good-deeds');
         break;
       case 2:
-        context.go('/challenges');
-        break;
-      case 3:
         context.go('/chat');
         break;
-      case 4:
+      case 3:
         context.go('/more');
         break;
     }
