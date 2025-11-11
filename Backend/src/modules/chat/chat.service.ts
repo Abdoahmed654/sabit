@@ -54,14 +54,6 @@ export class ChatService {
         where: {
           OR: [
             { type: GroupType.PUBLIC },
-            { 
-              type: GroupType.CHALLENGE,
-              members: {
-                some: {
-                  userId: userId,
-                },
-              }, 
-            },
             {
               type: GroupType.PRIVATE,
               members: {
@@ -189,7 +181,7 @@ export class ChatService {
 
     // For PUBLIC and CHALLENGE groups, users might not have a membership record
     // Only PRIVATE groups require explicit membership
-    if (group.type === 'PUBLIC' || group.type === 'CHALLENGE') {
+    if (group.type === 'PUBLIC' ) {
       // Check if user has a membership record
       const membership = await this.prisma.chatGroupMember.findFirst({
         where: {

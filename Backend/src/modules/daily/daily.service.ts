@@ -41,7 +41,6 @@ export class DailyService {
         userId,
         actionType: dto.actionType,
         metadata: dto.metadata,
-        taskId: dto.taskId,
         count: dto.count || 1,
       },
     });
@@ -53,11 +52,6 @@ export class DailyService {
       this.usersService.addXp(userId, rewards.xp),
       this.usersService.addCoins(userId, rewards.coins),
     ]);
-
-    // If this is for a challenge task, update progress
-    if (dto.taskId) {
-      await this.updateChallengeTaskProgress(userId, dto.taskId, dto.count || 1);
-    }
 
     return {
       action,
@@ -185,63 +179,6 @@ export class DailyService {
     return baseReward;
   }
 
-  private async updateChallengeTaskProgress(userId: string, taskId: string, count: number) {
-    // Find the task
-    const task = await this.prisma.challengeTask.findUnique({
-      where: { id: taskId },
-      include: { challenge: true },
-    });
-
-    if (!task) return;
-
-    // Find user's progress for this challenge
-    const progress = await this.prisma.challengeProgress.findUnique({
-      where: {
-        userId_challengeId: {
-          userId,
-          challengeId: task.challengeId,
-        },
-      },
-    });
-
-    if (!progress) return;
-
-    // Update task progress
-    const taskProgress = (progress.taskProgress as any) || {};
-    if (!taskProgress[taskId]) {
-      taskProgress[taskId] = {
-        current: 0,
-        goal: task.goalCount || 1,
-        completed: false,
-      };
-    }
-
-    taskProgress[taskId].current += count;
-    if (taskProgress[taskId].current >= taskProgress[taskId].goal) {
-      taskProgress[taskId].completed = true;
-    }
-
-    // Check if all tasks are completed
-    const allTasksCompleted = Object.values(taskProgress).every(
-      (tp: any) => tp.completed,
-    );
-
-    await this.prisma.challengeProgress.update({
-      where: { id: progress.id },
-      data: {
-        taskProgress,
-        status: allTasksCompleted ? 'COMPLETED' : 'IN_PROGRESS',
-      },
-    });
-
-    // If challenge completed, award rewards
-    if (allTasksCompleted && progress.status !== 'COMPLETED') {
-      await Promise.all([
-        this.usersService.addXp(userId, task.challenge.rewardXp),
-        this.usersService.addCoins(userId, task.challenge.rewardCoins),
-      ]);
-    }
-  }
 
   // ==================== PRAYER TIMES ====================
 
@@ -429,28 +366,6 @@ export class DailyService {
   async getUserDailyTasks(userId: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
-    // Get user's active challenges
-    const userChallenges = await this.prisma.challengeProgress.findMany({
-      where: {
-        userId,
-        status: 'IN_PROGRESS',
-        challenge: {
-          endAt: {
-            gte: new Date(),
-          },
-        },
-      },
-      include: {
-        challenge: {
-          include: {
-            tasks: true,
-          },
-        },
-      },
-    });
-
-    // Get today's completed actions
     const todayActions = await this.prisma.dailyAction.findMany({
       where: {
         userId,
@@ -491,50 +406,6 @@ export class DailyService {
       overallCompleted: boolean;
       points: number;
     }> = [];
-
-    for (const userChallenge of userChallenges) {
-      const taskProgress = (userChallenge.taskProgress as any) || {};
-
-      for (const task of userChallenge.challenge.tasks) {
-        const progress = taskProgress[task.id] || {
-          current: 0,
-          goal: task.goalCount || 1,
-          completed: false,
-        };
-
-        // Determine if task is completed today
-        let completedToday = false;
-
-        if (task.type === 'PRAYER') {
-          // Check if all 5 prayers are done
-          completedToday = todayPrayers.length === 5;
-        } else if (task.type === 'AZKAR') {
-          // Check if specific azkar is done (from params)
-          const params = task.params as any;
-          const azkarId = params?.azkarId;
-          if (azkarId) {
-            const azkarCompletion = todayAzkar.find((a) => a.azkarId === azkarId);
-            completedToday = !!azkarCompletion;
-          }
-        } else if (task.type === 'DAILY') {
-          // Check if action is done today
-          completedToday = todayActions.some((a) => a.taskId === task.id);
-        }
-
-        dailyTasks.push({
-          taskId: task.id,
-          challengeId: userChallenge.challenge.id,
-          challengeTitle: userChallenge.challenge.title,
-          taskTitle: task.title,
-          taskType: task.type,
-          goalCount: task.goalCount,
-          currentProgress: progress.current,
-          completedToday,
-          overallCompleted: progress.completed,
-          points: task.points,
-        });
-      }
-    }
 
     return {
       dailyTasks,
